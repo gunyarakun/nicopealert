@@ -6,6 +6,7 @@
 
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
+from nicolive import NicoLive
 
 class MainWindow(QtGui.QMainWindow):
   def __init__(self):
@@ -17,7 +18,8 @@ class MainWindow(QtGui.QMainWindow):
     self.connect(self.ui.pushButton, QtCore.SIGNAL('clicked()'),
                  self.accept)
   def accept(self):
-    print 'yahhoi'
+    nl = NicoLive()
+    nl.fetch_lives()
 
 if __name__ == '__main__':
   import sys
