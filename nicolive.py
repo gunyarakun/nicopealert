@@ -20,10 +20,11 @@ class NicoLive:
   live_details = {}
   live_detail_fetch_queue = Queue.Queue(MAX_QUEUE_SIZE)
 
-  def __init__(self):
+  def __init__(self, fetch_detail_callback):
     self.opener = urllib2.build_opener()
     self.fetch_thread = threading.Thread(target = self.fetch_live_detail_from_queue)
     self.fetch_thread.start()
+    self.fetch_detail_callback = fetch_detail_callback
 
   def fetch(self):
     self.fetch_lives()
@@ -37,7 +38,10 @@ class NicoLive:
           except Queue.Full, e:
             # TODO: error handling
             pass
-      break
+
+  @staticmethod
+  def live_id_to_str(live_id):
+    return 'lv' + str(live_id)
 
   def fetch_lives(self):
     for tab in self.TABS:
@@ -62,7 +66,7 @@ class NicoLive:
         detail = self.fetch_live_detail_from_live_id(live_id)
         if detail:
           self.live_details[live_id] = detail
-          print detail
+          self.fetch_detail_callback(live_id)
       except Queue.Empty:
         # TODO: error handling
         pass 
@@ -85,7 +89,7 @@ class NicoLive:
         com_text = ''.join(com_a.xpath('text()')).strip()
 
         return {'live_id': live_id,
-                'live_id_str': 'lv' + str(live_id),
+                'live_id_str': self.live_id_to_str(live_id),
                 'title': title,
                 'desc': desc,
                 'nusi': nusi,

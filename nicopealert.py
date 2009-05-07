@@ -43,26 +43,23 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     # set header
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
-    self.update()
+    self.nicolive = NicoLive(self.append)
+    self.nicolive.fetch()
 
-  def update(self):
-    nl = NicoLive()
-    nl.fetch()
+  def append(self, live_id):
+    row = self.rowCount()
+    self.setRowCount(row + 1)
 
-    # その瞬間のニコ生情報一覧をコピっておく、
-    # 削除や追加がいつ起こるかわからないから
-    lives = nl.live_details.copy()
+    live_detail = self.nicolive.live_details[live_id]
 
-    self.setRowCount(len(lives))
-    for i, l in enumerate(lives.keys()):
-      for j, k in enumerate(self.COL_KEYS):
-        item = QtGui.QStandardItem()
-        str = self.RE_LF.sub('', lives[l][k])
-        # FIXME: str() for nicolive id
-        item.setData(QtCore.QVariant(QtCore.QString(str)),
-                     QtCore.Qt.DisplayRole)
-        item.setEditable(False)
-        self.setItem(i, j, item)
+    for i, key in enumerate(self.COL_KEYS):
+      item = QtGui.QStandardItem()
+      str = self.RE_LF.sub('', live_detail[key])
+      # FIXME: str() for nicolive id
+      item.setData(QtCore.QVariant(QtCore.QString(str)),
+                   QtCore.Qt.DisplayRole)
+      item.setEditable(False)
+      self.setItem(row, i, item)
 
 class MainWindow(QtGui.QMainWindow):
   def __init__(self, app):
