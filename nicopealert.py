@@ -7,6 +7,8 @@
 # TODO: threadが終わらなくてアプリが終了しないよ問題なおす
 # TODO: トレイアイコン実験
 # TODO: 検索条件付与
+# TODO: コミュアイコン取得
+# TODO: 生ごとの詳細表示
 # TODO: nicoliveタイマー取得
 # TODO: nicoliveいらないもの処理GC
 
