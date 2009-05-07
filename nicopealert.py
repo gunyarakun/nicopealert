@@ -35,15 +35,17 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
   RE_LF = re.compile(r'\r?\n')
 
-  COL_NAMES = [u'タイトル', u'コミュ名', u'生主', u'説明文']
-  COL_KEYS = ['live_id_str', 'com_text', 'nusi', 'desc']
+  COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'説明文']
+  COL_KEYS = ['live_id_str', 'title', 'com_text', 'nusi', 'desc']
 
   def __init__(self, parent = None):
-    QtGui.QStandardItemModel.__init__(self, 0, 4, parent)
+    QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), parent)
     # set header
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
+    self.update()
 
+  def update(self):
     nl = NicoLive()
     nl.fetch_lives()
 
@@ -71,6 +73,8 @@ class MainWindow(QtGui.QMainWindow):
     self.liveTreeViewModel = NicoLiveTreeViewModel(self)
     self.liveTreeView.setModel(self.liveTreeViewModel)
     self.liveTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.liveTreeView.setColumnWidth(0, 80)
+
     self.connect(self.liveTreeView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
                  self.liveTreeContextMenu)
@@ -79,8 +83,7 @@ class MainWindow(QtGui.QMainWindow):
                  self.accept)
 
   def accept(self):
-    nl = NicoLive()
-    nl.fetch_lives()
+    pass
 
   def liveTreeContextMenu(self, point):
     tree_index = self.liveTreeView.indexAt(point)
