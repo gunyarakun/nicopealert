@@ -48,6 +48,7 @@ class NicoLive:
     # tmdlの中は、詳細コメント・主・コミュニティ・注意書きの順で<p>が入ってる
     if tmdl is not None:
       try:
+        title = ''.join(html.xpath('h2[@class="ttl"]')).strip()
         desc = ''.join(tmdl.xpath('p[@class="stream_description"]/text()')).strip()
         nusi = ''.join(tmdl.xpath('p/span[@class="nicopedia"]/text()')).strip()
         com_a = tmdl.findall('p/a')[-1]
@@ -57,6 +58,7 @@ class NicoLive:
 
         return {'live_id': live_id,
                 'live_id_str': 'lv' + str(live_id),
+                'title': title,
                 'desc': desc,
                 'nusi': nusi,
                 'com_id': com_id,
