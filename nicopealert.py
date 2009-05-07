@@ -11,6 +11,8 @@ from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
 from nicolive import NicoLive
 
+import webbrowser
+
 class NicoLiveTreeNode:
    def __init__(self, data, parent = None):
      self.data = data
@@ -54,6 +56,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
         # FIXME: str() for nicolive id
         item.setData(QtCore.QVariant(QtCore.QString(str)),
                      QtCore.Qt.DisplayRole)
+        item.setEditable(False)
         self.setItem(i, j, item)
 
 class MainWindow(QtGui.QMainWindow):
@@ -64,8 +67,12 @@ class MainWindow(QtGui.QMainWindow):
     self.ui.setupUi(self)
 
     self.liveTreeView = self.ui.liveTreeView
-    liveTreeViewModel = NicoLiveTreeViewModel(self)
-    self.liveTreeView.setModel(liveTreeViewModel)
+    self.liveTreeViewModel = NicoLiveTreeViewModel(self)
+    self.liveTreeView.setModel(self.liveTreeViewModel)
+    self.liveTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.connect(self.liveTreeView,
+                 QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
+                 self.liveTreeContextMenu)
 
     self.connect(self.ui.pushButton, QtCore.SIGNAL('clicked()'),
                  self.accept)
@@ -73,6 +80,19 @@ class MainWindow(QtGui.QMainWindow):
   def accept(self):
     nl = NicoLive()
     nl.fetch_lives()
+
+  def liveTreeContextMenu(self, point):
+    tree_index = self.liveTreeView.indexAt(point)
+    target_live_id = self.liveTreeViewModel.item(tree_index.row(), 0).text()
+    url = 'http://live.nicovideo.jp/watch/' + target_live_id
+
+    popup_menu = QtGui.QMenu(self)
+    popup_menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
+    #popup_menu.addAction(u'URLをコピー')
+    #popup_menu.addSeparator()
+    #popup_menu.addAction(u'コミュニティを通知対象にする')
+    #popup_menu.addAction(u'主を通知対象にする')
+    popup_menu.exec_(self.liveTreeView.mapToGlobal(point))
 
 if __name__ == '__main__':
   import sys

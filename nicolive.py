@@ -27,6 +27,7 @@ class NicoLive:
         detail = self.fetch_live_detail_from_live_id(live_id)
         if detail:
           self.live_details[live_id] = detail
+      break
 
   def fetch_live_ids_from_html(self, url, id_set):
     htmlio = self.opener.open(url)
