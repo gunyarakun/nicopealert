@@ -60,8 +60,9 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
         self.setItem(i, j, item)
 
 class MainWindow(QtGui.QMainWindow):
-  def __init__(self):
+  def __init__(self, app):
     QtGui.QDialog.__init__(self)
+    self.app = app
 
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
@@ -88,7 +89,7 @@ class MainWindow(QtGui.QMainWindow):
 
     popup_menu = QtGui.QMenu(self)
     popup_menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
-    #popup_menu.addAction(u'URLをコピー')
+    popup_menu.addAction(u'URLをコピー', lambda: self.app.clipboard().setText(QtCore.QString(url)))
     #popup_menu.addSeparator()
     #popup_menu.addAction(u'コミュニティを通知対象にする')
     #popup_menu.addAction(u'主を通知対象にする')
@@ -99,6 +100,6 @@ if __name__ == '__main__':
   import codecs # for debug
 
   app = QtGui.QApplication(sys.argv)
-  mw = MainWindow()
+  mw = MainWindow(app)
   mw.show()
   sys.exit(app.exec_())
