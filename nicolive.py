@@ -7,27 +7,42 @@
 import re
 import urllib2
 from lxml import etree
+import Queue
+import threading
 
 class NicoLive:
   TABS = ['common', 'try', 'live', 'req', 'r18']
   WATCH_URL_REGEX = re.compile(r'(http://live.nicovideo.jp)?/watch/lv(\d+)')
+  MAX_QUEUE_SIZE = 512 # 枠全体よりは上が望ましいか
+  QUEUE_BLOCK_TIMEOUT = 5
 
   liveid_set = set()
   live_details = {}
+  live_detail_fetch_queue = Queue.Queue(MAX_QUEUE_SIZE)
 
   def __init__(self):
     self.opener = urllib2.build_opener()
+    self.fetch_thread = threading.Thread(target = self.fetch_live_detail_from_queue)
+    self.fetch_thread.start()
+
+  def fetch(self):
+    self.fetch_lives()
+    # add que to fetch live details.
+    for live_id in self.liveid_set:
+      if not self.live_details.has_key(live_id):
+        while True:
+          try:
+            self.live_detail_fetch_queue.put(live_id, True, self.QUEUE_BLOCK_TIMEOUT)
+            break
+          except Queue.Full, e:
+            # TODO: error handling
+            pass
+      break
 
   def fetch_lives(self):
     for tab in self.TABS:
       url = 'http://live.nicovideo.jp/recent?tab=%s&p=1' % tab
       self.fetch_live_ids_from_html(url, self.liveid_set)
-    for live_id in self.liveid_set:
-      if not self.live_details.has_key(live_id):
-        detail = self.fetch_live_detail_from_live_id(live_id)
-        if detail:
-          self.live_details[live_id] = detail
-      break
 
   def fetch_live_ids_from_html(self, url, id_set):
     htmlio = self.opener.open(url)
@@ -38,6 +53,19 @@ class NicoLive:
         m = self.WATCH_URL_REGEX.match(a.attrib['href'])
         if m:
           id_set.add(int(m.group(2)))
+
+  def fetch_live_detail_from_queue(self):
+    while 1:
+      try:
+        live_id = self.live_detail_fetch_queue.get(True, self.QUEUE_BLOCK_TIMEOUT)
+        print live_id
+        detail = self.fetch_live_detail_from_live_id(live_id)
+        if detail:
+          self.live_details[live_id] = detail
+          print detail
+      except Queue.Empty:
+        # TODO: error handling
+        pass 
 
   def fetch_live_detail_from_live_id(self, live_id):
     url = 'http://live.nicovideo.jp/watch/lv%d' % live_id

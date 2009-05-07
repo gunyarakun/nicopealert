@@ -47,14 +47,17 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
   def update(self):
     nl = NicoLive()
-    nl.fetch_lives()
+    nl.fetch()
 
-    self.setRowCount(len(nl.live_details))
+    # その瞬間のニコ生情報一覧をコピっておく、
+    # 削除や追加がいつ起こるかわからないから
+    lives = nl.live_details.copy()
 
-    for i, l in enumerate(nl.live_details.keys()):
+    self.setRowCount(len(lives))
+    for i, l in enumerate(lives.keys()):
       for j, k in enumerate(self.COL_KEYS):
         item = QtGui.QStandardItem()
-        str = self.RE_LF.sub('', nl.live_details[l][k])
+        str = self.RE_LF.sub('', lives[l][k])
         # FIXME: str() for nicolive id
         item.setData(QtCore.QVariant(QtCore.QString(str)),
                      QtCore.Qt.DisplayRole)
