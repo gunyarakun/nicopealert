@@ -74,6 +74,7 @@ class MainWindow(QtGui.QMainWindow):
     self.liveTreeView.setModel(self.liveTreeViewModel)
     self.liveTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.liveTreeView.setColumnWidth(0, 80)
+    self.liveTreeView.setSortingEnabled(True)
 
     self.connect(self.liveTreeView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
