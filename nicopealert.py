@@ -4,9 +4,11 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a gunyarakun)
 
+# TODO: threadが終わらなくてアプリが終了しないよ問題なおす
+# TODO: トレイアイコン実験
+# TODO: 検索条件付与
 # TODO: nicoliveタイマー取得
 # TODO: nicoliveいらないもの処理GC
-# TODO: nicolive
 
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow

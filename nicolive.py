@@ -65,7 +65,6 @@ class NicoLive:
     while 1:
       try:
         live_id = self.live_detail_fetch_queue.get(True, self.QUEUE_BLOCK_TIMEOUT)
-        print live_id
         detail = self.fetch_live_detail_from_live_id(live_id)
         if detail:
           self.live_details[live_id] = detail
