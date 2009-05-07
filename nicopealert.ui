@@ -33,9 +33,6 @@
         <string>大百科</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2" >
-        <item row="0" column="0" >
-         <widget class="QListView" name="listView" />
-        </item>
         <item row="5" column="0" >
          <layout class="QHBoxLayout" name="horizontalLayout" >
           <item>
@@ -74,6 +71,9 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item row="0" column="0" >
+         <widget class="QTreeView" name="liveTreeView" />
         </item>
        </layout>
       </widget>

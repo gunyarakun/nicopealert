@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nicopealert.ui'
 #
-# Created: Wed May 06 08:14:47 2009
+# Created: Wed May 06 11:14:43 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -29,9 +29,6 @@ class Ui_MainWindow(object):
     self.tab.setObjectName("tab")
     self.gridLayout_2 = QtGui.QGridLayout(self.tab)
     self.gridLayout_2.setObjectName("gridLayout_2")
-    self.listView = QtGui.QListView(self.tab)
-    self.listView.setObjectName("listView")
-    self.gridLayout_2.addWidget(self.listView, 0, 0, 1, 1)
     self.horizontalLayout = QtGui.QHBoxLayout()
     self.horizontalLayout.setObjectName("horizontalLayout")
     spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -47,6 +44,9 @@ class Ui_MainWindow(object):
     self.pushButton.setObjectName("pushButton")
     self.horizontalLayout.addWidget(self.pushButton)
     self.gridLayout_2.addLayout(self.horizontalLayout, 5, 0, 1, 1)
+    self.liveTreeView = QtGui.QTreeView(self.tab)
+    self.liveTreeView.setObjectName("liveTreeView")
+    self.gridLayout_2.addWidget(self.liveTreeView, 0, 0, 1, 1)
     self.tabWidget.addTab(self.tab, "")
     self.tab_2 = QtGui.QWidget()
     self.tab_2.setObjectName("tab_2")
