@@ -6,6 +6,7 @@
 
 # TODO: nicoliveタイマー取得
 # TODO: nicoliveいらないもの処理GC
+# TODO: nicolive
 
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow

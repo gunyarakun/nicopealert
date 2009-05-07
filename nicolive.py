@@ -17,6 +17,7 @@ class NicoLive:
   QUEUE_BLOCK_TIMEOUT = 5
 
   liveid_set = set()
+  liveid_queued_set = set()
   live_details = {}
   live_detail_fetch_queue = Queue.Queue(MAX_QUEUE_SIZE)
 
@@ -30,7 +31,9 @@ class NicoLive:
     self.fetch_lives()
     # add que to fetch live details.
     for live_id in self.liveid_set:
-      if not self.live_details.has_key(live_id):
+      if not self.live_details.has_key(live_id) \
+         and not live_id in self.liveid_queued_set:
+        self.liveid_queued_set.add(live_id)
         while True:
           try:
             self.live_detail_fetch_queue.put(live_id, True, self.QUEUE_BLOCK_TIMEOUT)
