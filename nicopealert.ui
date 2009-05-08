@@ -12,6 +12,10 @@
   <property name="windowTitle" >
    <string>ニコ百アラート</string>
   </property>
+  <property name="windowIcon" >
+   <iconset>
+    <normaloff>dic.gif</normaloff>dic.gif</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget" >
    <layout class="QGridLayout" name="gridLayout" >
     <item row="0" column="0" >
@@ -92,7 +96,7 @@
      <x>0</x>
      <y>0</y>
      <width>708</width>
-     <height>18</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu" >
