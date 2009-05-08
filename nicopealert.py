@@ -39,8 +39,8 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
   RE_LF = re.compile(r'\r?\n')
 
-  COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'説明文']
-  COL_KEYS = ['live_id_str', 'title', 'com_text', 'nusi', 'desc']
+  COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'来場数', u'コメ数', u'カテゴリ', u'説明文']
+  COL_KEYS = ['live_id_str', 'title', 'com_text', 'nusi', 'watcher_count', 'comment_count', 'category', 'desc']
 
   def __init__(self, mainWindow):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
@@ -60,10 +60,15 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
     for i, key in enumerate(self.COL_KEYS):
       item = QtGui.QStandardItem()
-      str = self.RE_LF.sub('', live_detail[key])
-      # FIXME: str() for nicolive id
-      item.setData(QtCore.QVariant(QtCore.QString(str)),
-                   QtCore.Qt.DisplayRole)
+      val = live_detail[key]
+      if isinstance(val, basestring):
+        str = self.RE_LF.sub('', live_detail[key])
+        item.setData(QtCore.QVariant(QtCore.QString(str)),
+                     QtCore.Qt.DisplayRole)
+      elif isinstance(val, int):
+        item.setData(QtCore.QVariant(val),
+                     QtCore.Qt.DisplayRole)
+        
       item.setEditable(False)
       self.setItem(row, i, item)
 
