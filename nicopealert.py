@@ -73,6 +73,8 @@ class MainWindow(QtGui.QMainWindow):
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
 
+    # liveTreeView
+
     self.liveTreeView = self.ui.liveTreeView
     self.liveTreeViewModel = NicoLiveTreeViewModel(self)
     self.liveTreeView.setModel(self.liveTreeViewModel)
@@ -83,6 +85,18 @@ class MainWindow(QtGui.QMainWindow):
     self.connect(self.liveTreeView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
                  self.liveTreeContextMenu)
+
+    # trayIcon/trayIconMenu/trayIconImg
+
+    self.trayIconImg = QtGui.QIcon(self.tr('dic.gif'))
+    self.trayIconMenu = QtGui.QMenu(self)
+    # self.trayIconMenu.addAction(u'終了')
+    self.trayIcon = QtGui.QSystemTrayIcon(self)
+    self.trayIcon.setContextMenu(self.trayIconMenu)
+    self.trayIcon.setIcon(self.trayIconImg)
+    self.trayIcon.show()
+
+    # buttons
 
     self.connect(self.ui.pushButton, QtCore.SIGNAL('clicked()'),
                  self.accept)
