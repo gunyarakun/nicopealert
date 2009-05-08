@@ -4,7 +4,6 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a gunyarakun)
 
-# TODO: トレイアイコン実験
 # TODO: 検索条件付与
 # TODO: コミュアイコン取得
 # TODO: 生ごとの詳細表示
@@ -42,8 +41,10 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
   COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'説明文']
   COL_KEYS = ['live_id_str', 'title', 'com_text', 'nusi', 'desc']
 
-  def __init__(self, parent = None):
-    QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), parent)
+  def __init__(self, mainWindow):
+    QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
+    self.mainWindow = mainWindow;
+
     # set header
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
@@ -64,6 +65,9 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
                    QtCore.Qt.DisplayRole)
       item.setEditable(False)
       self.setItem(row, i, item)
+
+      self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
+                                           QtCore.QString(live_detail['title']))
 
 class MainWindow(QtGui.QMainWindow):
   def __init__(self, app):
