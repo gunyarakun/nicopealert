@@ -41,7 +41,7 @@ class NicoLive:
             break
           except Queue.Full, e:
             # TODO: error handling
-            pass
+            time.sleep(1)
 
   @staticmethod
   def live_id_to_str(live_id):
@@ -81,7 +81,6 @@ class NicoLive:
     html = etree.parse(htmlio, etree.HTMLParser())
 
     tmdl = html.find('//div[@class="tmdl"]')
-    # tmdlの中は、詳細コメント・主・コミュニティ・注意書きの順で<p>が入ってる
     if tmdl is not None:
       try:
         title = ''.join(html.xpath('//h2[@class="ttl"]/text()')).strip()
