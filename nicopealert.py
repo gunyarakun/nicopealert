@@ -4,6 +4,7 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a gunyarakun)
 
+# TODO: 開始時間・来場者数・コメ数・コミュ限定・タグ・顔出し・アラート対象
 # TODO: 検索条件付与
 # TODO: コミュアイコン取得
 # TODO: 生ごとの詳細表示
