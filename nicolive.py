@@ -9,6 +9,7 @@ import urllib2
 from lxml import etree
 import Queue
 import threading
+import time # for sleep
 
 class NicoLive:
   TABS = ['common', 'try', 'live', 'req', 'r18']
@@ -64,14 +65,15 @@ class NicoLive:
   def fetch_live_detail_from_queue(self):
     while 1:
       try:
-        live_id = self.live_detail_fetch_queue.get(True, self.QUEUE_BLOCK_TIMEOUT)
+        live_id = self.live_detail_fetch_queue.get(False) # non-blocking
         detail = self.fetch_live_detail_from_live_id(live_id)
         if detail:
           self.live_details[live_id] = detail
           self.fetch_detail_callback(live_id)
+        time.sleep(0.1)
       except Queue.Empty:
         # TODO: error handling
-        pass 
+        time.sleep(2)
 
   def fetch_live_detail_from_live_id(self, live_id):
     url = 'http://live.nicovideo.jp/watch/lv%d' % live_id
