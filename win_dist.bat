@@ -1,1 +1,1 @@
-c:\Python26\Scripts\cxfreeze --include-modules="sip,lxml._elementpath,gzip,encodings.utf_8,encodings.ascii" nicopealert.py
+c:\Python26\Scripts\cxfreeze --include-modules="sip,gzip,encodings.utf_8,encodings.ascii" nicopealert.py

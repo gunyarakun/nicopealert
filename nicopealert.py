@@ -40,7 +40,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
   RE_LF = re.compile(r'\r?\n')
 
   COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'来場数', u'コメ数', u'カテゴリ', u'説明文']
-  COL_KEYS = ['live_id_str', 'title', 'com_text', 'nusi', 'watcher_count', 'comment_count', 'category', 'desc']
+  COL_KEYS = [u'live_id', u'title', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'desc']
 
   def __init__(self, mainWindow):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
