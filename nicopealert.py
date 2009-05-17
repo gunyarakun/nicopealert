@@ -1,4 +1,4 @@
-#!/usr/bin/local/python
+#!/usr/local/bin/python
 # -*- coding: utf-8 -*-
 
 # ニコニコ大百科用アラートツール
@@ -98,7 +98,7 @@ class MainWindow(QtGui.QMainWindow):
 
     # trayIcon/trayIconMenu/trayIconImg
 
-    self.trayIconImg = QtGui.QIcon(self.tr('dic.gif'))
+    self.trayIconImg = QtGui.QIcon(self.tr('dic.ico'))
     self.trayIconMenu = QtGui.QMenu(self)
     # self.trayIconMenu.addAction(u'終了')
     self.trayIcon = QtGui.QSystemTrayIcon(self)

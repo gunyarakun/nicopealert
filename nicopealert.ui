@@ -14,7 +14,7 @@
   </property>
   <property name="windowIcon" >
    <iconset>
-    <normaloff>dic.gif</normaloff>dic.gif</iconset>
+    <normaloff>dic.ico</normaloff>dic.ico</iconset>
   </property>
   <widget class="QWidget" name="centralwidget" >
    <layout class="QGridLayout" name="gridLayout" >

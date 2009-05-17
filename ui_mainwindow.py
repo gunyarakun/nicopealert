@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nicopealert.ui'
 #
-# Created: Fri May 08 01:37:25 2009
+# Created: Sun May 17 22:57:24 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,6 +13,9 @@ class Ui_MainWindow(object):
   def setupUi(self, MainWindow):
     MainWindow.setObjectName("MainWindow")
     MainWindow.resize(708, 458)
+    icon = QtGui.QIcon()
+    icon.addPixmap(QtGui.QPixmap("dic.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+    MainWindow.setWindowIcon(icon)
     self.centralwidget = QtGui.QWidget(MainWindow)
     self.centralwidget.setObjectName("centralwidget")
     self.gridLayout = QtGui.QGridLayout(self.centralwidget)
@@ -54,7 +57,7 @@ class Ui_MainWindow(object):
     self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
     MainWindow.setCentralWidget(self.centralwidget)
     self.menubar = QtGui.QMenuBar(MainWindow)
-    self.menubar.setGeometry(QtCore.QRect(0, 0, 708, 18))
+    self.menubar.setGeometry(QtCore.QRect(0, 0, 708, 19))
     self.menubar.setObjectName("menubar")
     self.menu = QtGui.QMenu(self.menubar)
     self.menu.setObjectName("menu")
