@@ -13,7 +13,7 @@
 
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
-from nicolive import NicoLive
+from nicopoll import NicoPoll
 
 import webbrowser
 
@@ -38,6 +38,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
   import re
 
   RE_LF = re.compile(r'\r?\n')
+  POLLING_DURATION = 10000 # 20000msec = 20sec
 
   COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'来場数', u'コメ数', u'カテゴリ', u'説明文']
   COL_KEYS = [u'live_id', u'title', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'desc']
@@ -49,14 +50,39 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     # set header
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
-    self.nicolive = NicoLive(self.append)
-    self.nicolive.fetch()
 
-  def append(self, live_id):
+    # first data fetch
+    self.nicopoll = NicoPoll(self.event_callback)
+    self.nicopoll.fetch()
+
+    # set timer for polling
+    self.timer = QtCore.QTimer(self)
+    self.connect(self.timer, QtCore.SIGNAL('timeout()'), self.timer_handler)
+    self.timer.setInterval(self.POLLING_DURATION)
+    self.timer.start()
+
+  def timer_handler(self):
+    self.nicopoll.fetch()
+
+  def event_callback(self, event):
+    self.append_live(event)
+
+  def append_dic(self, event):
+    pass
+
+  def delete_live(self, event):
+    pass
+
+  def change_counters(self, event):
+    pass
+
+  def append_live(self, event):
+    live_id = event['live_id']
+
     row = self.rowCount()
     self.setRowCount(row + 1)
 
-    live_detail = self.nicolive.live_details[live_id]
+    live_detail = self.nicopoll.live_details[live_id]
 
     for i, key in enumerate(self.COL_KEYS):
       item = QtGui.QStandardItem()
