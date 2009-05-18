@@ -2,14 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # ニコニコ大百科用アラートツール
-# by Tasuku SUENAGA (a.k.a gunyarakun)
+# by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: 開始時間・来場者数・コメ数・コミュ限定・タグ・顔出し・アラート対象
+# TODO: ニコ生、行の追加・更新・削除にロックが必要。
 # TODO: 検索条件付与
 # TODO: コミュアイコン取得
 # TODO: 生ごとの詳細表示
-# TODO: nicoliveタイマー取得
-# TODO: nicoliveいらないもの処理GC
 
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
@@ -42,6 +40,8 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
   COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'来場数', u'コメ数', u'カテゴリ', u'説明文']
   COL_KEYS = [u'live_id', u'title', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'desc']
+  COL_WATCHER_INDEX = 4
+  COL_COMMENT_INDEX = 5
 
   def __init__(self, mainWindow):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
@@ -64,20 +64,47 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
   def timer_handler(self):
     self.nicopoll.fetch()
 
-  def event_callback(self, event):
-    self.append_live(event)
+  def event_callback(self, type, event):
+    if type == 'current_lives':
+      self.current_lives(event)
+    elif type == 'live':
+      self.live_handler(event)
+    elif type == 'dic':
+      self.dic_handler(event)
+    else:
+      print '**** ababa ****'
 
-  def append_dic(self, event):
+  def dic_handler(self, event):
     pass
 
-  def delete_live(self, event):
-    pass
+  def current_lives(self, lives):
+    # 現在の生放送一覧から、
+    # 1. 終わってしまった生放送を取り除く
+    # 2. 放送中の生放送の視聴者数とコメント数を更新する
 
-  def change_counters(self, event):
-    pass
+    rows = self.rowCount()
 
-  def append_live(self, event):
+    for row in xrange(0, rows):
+      live_id = unicode(self.item(row, 0).text())
+
+      if lives.has_key(live_id):
+        print 'live %s count to be freshed' % live_id
+        item = QtGui.QStandardItem()
+        item.setData(QtCore.QVariant(lives[live_id]['watcher_count']),
+                     QtCore.Qt.DisplayRole)
+        self.setItem(row, self.COL_WATCHER_INDEX, item)
+
+        item = QtGui.QStandardItem()
+        item.setData(QtCore.QVariant(lives[live_id]['comment_count']),
+                     QtCore.Qt.DisplayRole)
+        self.setItem(row, self.COL_COMMENT_INDEX, item)
+      else:
+        print 'live %s is deleted...' % (live_id)
+        self.removeRow(row)
+
+  def live_handler(self, event):
     live_id = event['live_id']
+    print 'live %s to be added...' % live_id
 
     row = self.rowCount()
     self.setRowCount(row + 1)

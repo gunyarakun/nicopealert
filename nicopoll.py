@@ -22,7 +22,6 @@ class NicoPoll:
                                                         # 枠全体よりは上が望ましいか
   QUEUE_BLOCK_TIMEOUT = 5
 
-  liveid_set = set()                                    # 現在放送中の生放送idリスト
   liveid_queued_set = set()                             # 詳細情報取得待ちの生放送idリスト
   live_details = {}                                     # 生放送詳細情報
   live_detail_fetch_queue = Queue.Queue(MAX_QUEUE_SIZE) # 詳細情報取得待ち生放送idキュー
@@ -37,22 +36,31 @@ class NicoPoll:
   def fetch(self):
     url = 'http://dic.nicovideo.jp:2525/nicopealert.json.gz'
     print "fetch all"
-    jsongz = self.opener.open(url).read()
-    jsonstr = zlib.decompress(jsongz)
-    events = json.JSONDecoder().decode(jsonstr)
+    try:
+      jsongz = self.opener.open(url).read()
+      jsonstr = zlib.decompress(jsongz)
+      events = json.JSONDecoder().decode(jsonstr)
 
-    self.liveid_set = set(events['lives'])
-    for live_id in self.liveid_set:
-      if not live_id in self.liveid_queued_set and \
-         not self.live_details.has_key(live_id):
-        self.liveid_queued_set.add(live_id)
-        while True:
-          try:
-            self.live_detail_fetch_queue.put(live_id, True, self.QUEUE_BLOCK_TIMEOUT)
-            break
-          except Queue.Full, e:
-            # TODO: error handling
-            time.sleep(1)
+      current_lives = events['lives']
+      self.event_callback('current_lives', current_lives)
+
+      for live_id, live_count in current_lives.items():
+        if self.live_details.has_key(live_id):
+          self.live_details[live_id]['watcher_count'] = live_count['watcher_count']
+          self.live_details[live_id]['comment_count'] = live_count['comment_count']
+        elif not live_id in self.liveid_queued_set:
+          self.liveid_queued_set.add(live_id)
+          while True:
+            try:
+              self.live_detail_fetch_queue.put(live_id, True, self.QUEUE_BLOCK_TIMEOUT)
+              break
+            except Queue.Full, e:
+              # TODO: error handling
+              time.sleep(1)
+    except zlib.error:
+      pass
+    except:
+      pass
 
   def fetch_live_detail_from_queue(self):
     opener = urllib2.build_opener()
@@ -62,7 +70,9 @@ class NicoPoll:
         detail = self.fetch_live_detail_from_live_id(live_id, opener)
         if detail:
           self.live_details[live_id] = detail
-          self.event_callback({'live_id': live_id})
+          self.event_callback('live', {'live_id': live_id})
+        else:
+          self.live_detail_fetch_queue.put(live_id, True, self.QUEUE_BLOCK_TIMEOUT)
         time.sleep(0.1)
       except Queue.Empty:
         # TODO: error handling
@@ -70,13 +80,17 @@ class NicoPoll:
 
   def fetch_live_detail_from_live_id(self, live_id, opener):
     url = 'http://dic.nicovideo.jp:2525/%s.json.gz' % live_id.encode('ascii')
+    print "fetch url:%s" % url
     try:
-      print "fetch url:%s" % live_id
       jsongz = opener.open(url).read()
       jsonstr = zlib.decompress(jsongz, 15, 65535)
 
       detail = json.JSONDecoder().decode(jsonstr)
       detail['live_id'] = live_id
       return detail
-    except:
+    except urllib2.HTTPError, e:
+      print "fetch %s error !!!!! : %s" % (live_id, e.message)
+      return None
+    except zlib.error, e:
+      print "%s zlib extract error !!!!! : %s" % (live_id, e.message)
       return None
