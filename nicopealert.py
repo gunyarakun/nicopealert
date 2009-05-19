@@ -12,6 +12,7 @@
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
 from nicopoll import NicoPoll
+from datetime import datetime
 
 import webbrowser
 
@@ -38,8 +39,8 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
   RE_LF = re.compile(r'\r?\n')
   POLLING_DURATION = 10000 # 20000msec = 20sec
 
-  COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'来場数', u'コメ数', u'カテゴリ', u'説明文']
-  COL_KEYS = [u'live_id', u'title', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'desc']
+  COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'来場数', u'コメ数', u'カテゴリ', u'開始時刻']
+  COL_KEYS = [u'live_id', u'title', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'time']
   COL_WATCHER_INDEX = 4
   COL_COMMENT_INDEX = 5
 
@@ -103,6 +104,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
       else:
         print 'live %s is deleted...' % (live_id)
         self.removeRow(row)
+    # TODO: 現在設定されているソート順で並べなおす
 
   def live_handler(self, event):
     live_id = event['live_id']
@@ -120,7 +122,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
         str = self.RE_LF.sub('', live_detail[key])
         item.setData(QtCore.QVariant(QtCore.QString(str)),
                      QtCore.Qt.DisplayRole)
-      elif isinstance(val, int):
+      elif isinstance(val, int) or isinstance(val, datetime):
         item.setData(QtCore.QVariant(val),
                      QtCore.Qt.DisplayRole)
         

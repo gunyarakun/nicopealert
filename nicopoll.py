@@ -12,6 +12,7 @@ import time # for sleep
 import zlib
 import StringIO
 import json
+from datetime import datetime
 
 # polling sucks, but...
 
@@ -88,7 +89,11 @@ class NicoPoll:
       jsonstr = zlib.decompress(jsongz, 15, 65535)
 
       detail = json.JSONDecoder().decode(jsonstr)
+
+      # ちょっと加工
       detail['live_id'] = live_id
+      print type(detail['time'])
+      detail['time'] = datetime.fromtimestamp(detail['time'])
       return detail
     except urllib2.HTTPError, e:
       print "fetch %s error !!!!! : %s" % (live_id, e.message)
