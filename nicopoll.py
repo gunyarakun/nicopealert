@@ -49,10 +49,10 @@ class NicoPoll:
           self.live_details[live_id]['watcher_count'] = live_count['watcher_count']
           self.live_details[live_id]['comment_count'] = live_count['comment_count']
         elif not live_id in self.liveid_queued_set:
-          self.liveid_queued_set.add(live_id)
           while True:
             try:
-              self.live_detail_fetch_queue.put(live_id, True, self.QUEUE_BLOCK_TIMEOUT)
+              self.live_detail_fetch_queue.put(live_id)
+              self.liveid_queued_set.add(live_id)
               break
             except Queue.Full, e:
               # TODO: error handling
@@ -74,6 +74,7 @@ class NicoPoll:
           self.event_callback('live', {'live_id': live_id})
         else:
           self.live_detail_fetch_queue.put(live_id, True, self.QUEUE_BLOCK_TIMEOUT)
+          self.liveid_queued_set.add(live_id)
         time.sleep(0.1)
       except Queue.Empty:
         # TODO: error handling
