@@ -67,6 +67,7 @@ class NicoPoll:
     while 1:
       try:
         live_id = self.live_detail_fetch_queue.get(False) # non-blocking
+        self.liveid_queued_set.discard(live_id)
         detail = self.fetch_live_detail_from_live_id(live_id, opener)
         if detail:
           self.live_details[live_id] = detail
