@@ -92,11 +92,13 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
         item = QtGui.QStandardItem()
         item.setData(QtCore.QVariant(lives[live_id]['watcher_count']),
                      QtCore.Qt.DisplayRole)
+        item.setEditable(False)
         self.setItem(row, self.COL_WATCHER_INDEX, item)
 
         item = QtGui.QStandardItem()
         item.setData(QtCore.QVariant(lives[live_id]['comment_count']),
                      QtCore.Qt.DisplayRole)
+        item.setEditable(False)
         self.setItem(row, self.COL_COMMENT_INDEX, item)
       else:
         print 'live %s is deleted...' % (live_id)
