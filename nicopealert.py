@@ -13,7 +13,7 @@ from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
 from nicopoll import NicoPoll
 from datetime import datetime
-
+import threading
 import webbrowser
 
 class NicoLiveTreeNode:
@@ -44,6 +44,8 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
   COL_WATCHER_INDEX = 4
   COL_COMMENT_INDEX = 5
 
+  lock = threading.Lock()
+
   def __init__(self, mainWindow):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
     self.mainWindow = mainWindow;
@@ -66,6 +68,8 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     self.nicopoll.fetch()
 
   def event_callback(self, type, event):
+    print type, event, '\n'
+    # 注意: callbackは複数のスレッドから呼ばれる。
     if type == 'current_lives':
       self.current_lives(event)
     elif type == 'live':
@@ -85,6 +89,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
     rows = self.rowCount()
 
+    self.lock.acquire()
     for row in xrange(0, rows):
       live_id = unicode(self.item(row, 0).text())
 
@@ -105,16 +110,19 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
         print 'live %s is deleted...' % (live_id)
         self.removeRow(row)
     # TODO: 現在設定されているソート順で並べなおす
+    self.lock.release()
 
   def live_handler(self, event):
     live_id = event['live_id']
     print 'live %s to be added...' % live_id
 
+    self.lock.acquire()
     row = self.rowCount()
     self.setRowCount(row + 1)
 
     live_detail = self.nicopoll.live_details[live_id]
 
+    # TODO: 現在設定されているソート順を考慮した挿入
     for i, key in enumerate(self.COL_KEYS):
       item = QtGui.QStandardItem()
       val = live_detail[key]
@@ -131,6 +139,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
       self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
                                            QtCore.QString(live_detail['title']))
+    self.lock.release()
 
 class MainWindow(QtGui.QMainWindow):
   def __init__(self, app):

@@ -19,13 +19,18 @@ from datetime import datetime
 
 class NicoPoll:
 
-  MAX_QUEUE_SIZE = 512                                  # 生放送詳細情報を取得するキューサイズ
-                                                        # 枠全体よりは上が望ましいか
+  # 生放送詳細情報を取得するキューサイズ
+  # 枠全体よりは上が望ましいか
+  MAX_LIVE_DETAIL_QUEUE_SIZE = 512
+  # queueのタイムアウト
   QUEUE_BLOCK_TIMEOUT = 5
 
-  liveid_queued_set = set()                             # 詳細情報取得待ちの生放送idリスト
-  live_details = {}                                     # 生放送詳細情報
-  live_detail_fetch_queue = Queue.Queue(MAX_QUEUE_SIZE) # 詳細情報取得待ち生放送idキュー
+  # 詳細情報取得待ちの生放送idリスト
+  liveid_queued_set = set()
+  # 生放送詳細情報
+  live_details = {}
+  # 詳細情報取得待ち生放送idキュー
+  live_detail_fetch_queue = Queue.Queue(MAX_LIVE_DETAIL_QUEUE_SIZE)
 
   def __init__(self, event_callback):
     self.opener = urllib2.build_opener()
