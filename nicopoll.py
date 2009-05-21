@@ -77,7 +77,7 @@ class NicoPoll:
         detail = self.fetch_live_detail_from_live_id(live_id, opener)
         if detail:
           self.live_details[live_id] = detail
-          self.liveTreeViewModel.event_callback('live', {'live_id': live_id})
+          self.liveTreeViewModel.event_callback('live', {'detail': detail})
         else:
           self.live_detail_fetch_queue.put(live_id, True, self.QUEUE_BLOCK_TIMEOUT)
           self.liveid_queued_set.add(live_id)
@@ -96,9 +96,8 @@ class NicoPoll:
       detail = json.JSONDecoder().decode(jsonstr)
 
       # ちょっと加工
-      detail['live_id'] = live_id
-      print type(detail['time'])
-      detail['time'] = datetime.fromtimestamp(detail['time'])
+      detail[u'live_id'] = live_id
+      detail[u'time'] = datetime.fromtimestamp(detail[u'time'])
       return detail
     except urllib2.HTTPError, e:
       print "fetch %s error !!!!! : %s" % (live_id, e.message)

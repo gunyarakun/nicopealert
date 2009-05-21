@@ -44,7 +44,6 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
 
   def event_callback(self, type, event):
-    print type, event, '\n'
     # 注意: callbackは複数のスレッドから呼ばれる。
     if type == 'current_lives':
       self.current_lives(event)
@@ -84,21 +83,19 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     self.lock.release()
 
   def live_handler(self, event):
-    live_id = event['live_id']
-    print 'live %s to be added...' % live_id
+    detail = event['detail']
+    print 'live %s to be added...' % detail[u'live_id']
 
     self.lock.acquire()
     row = self.rowCount()
     self.setRowCount(row + 1)
 
-    live_detail = self.nicopoll.live_details[live_id]
-
     # TODO: 現在設定されているソート順を考慮した挿入
     for i, key in enumerate(self.COL_KEYS):
       item = QtGui.QStandardItem()
-      val = live_detail[key]
+      val = detail[key]
       if isinstance(val, basestring):
-        str = self.RE_LF.sub('', live_detail[key])
+        str = self.RE_LF.sub('', detail[key])
         item.setData(QtCore.QVariant(QtCore.QString(str)),
                      QtCore.Qt.DisplayRole)
       elif isinstance(val, int) or isinstance(val, datetime):
@@ -109,7 +106,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
       self.setItem(row, i, item)
 
       self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
-                                           QtCore.QString(live_detail['title']))
+                                           QtCore.QString(detail['title']))
     self.lock.release()
 
 class MainWindow(QtGui.QMainWindow):
