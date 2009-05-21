@@ -16,22 +16,14 @@ from datetime import datetime
 import threading
 import webbrowser
 
-class NicoLiveTreeNode:
-   def __init__(self, data, parent = None):
-     self.data = data
-     self.parent = parent
-     self.children = []
+class NicoDicTreeViewModel(QtGui.QStandardItemModel):
+  COL_NAMES = [u'ID', u'記事種別', u'記事名', u'内容', u'詳細', u'時刻']
 
-   def addChild(self, data):
-     node = NicoLiveTreeNode(data, self)
-     self.children.append(node)
-     return node
-
-   def row(self):
-     if self.parent:
-       return self.parent.children.index(self)
-     else:
-       return 0
+  def __init__(self, mainWindow):
+    QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
+    self.mainWindow = mainWindow;
+    for i, c in enumerate(self.COL_NAMES):
+      self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
 
 class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
   import re
@@ -48,8 +40,6 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
   def __init__(self, mainWindow):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
     self.mainWindow = mainWindow;
-
-    # set header
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
 
@@ -60,13 +50,8 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
       self.current_lives(event)
     elif type == 'live':
       self.live_handler(event)
-    elif type == 'dic':
-      self.dic_handler(event)
     else:
       print '**** ababa ****'
-
-  def dic_handler(self, event):
-    pass
 
   def current_lives(self, lives):
     # 現在の生放送一覧から、
@@ -136,6 +121,14 @@ class MainWindow(QtGui.QMainWindow):
 
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
+
+    # dicTreeView
+    self.dicTreeView = self.ui.dicTreeView
+    self.dicTreeViewModel = NicoDicTreeViewModel(self)
+    self.dicTreeView.setModel(self.dicTreeViewModel)
+    self.dicTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.dicTreeView.setColumnWidth(0, 80)
+    self.dicTreeView.setSortingEnabled(True)
 
     # liveTreeView
     self.liveTreeView = self.ui.liveTreeView
