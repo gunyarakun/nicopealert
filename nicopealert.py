@@ -70,54 +70,58 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
     rows = self.rowCount()
 
-    self.lock.acquire()
-    for row in xrange(0, rows):
-      live_id = unicode(self.item(row, 0).text())
+    try:
+      self.lock.acquire()
+      for row in xrange(0, rows):
+        live_id = unicode(self.item(row, 0).text())
 
-      if lives.has_key(live_id):
-        # print 'live %s count to be freshed' % live_id
-        item = QtGui.QStandardItem()
-        item.setData(QtCore.QVariant(lives[live_id]['watcher_count']),
-                     QtCore.Qt.DisplayRole)
-        item.setEditable(False)
-        self.setItem(row, self.COL_WATCHER_INDEX, item)
+        if lives.has_key(live_id):
+          # print 'live %s count to be freshed' % live_id
+          item = QtGui.QStandardItem()
+          item.setData(QtCore.QVariant(lives[live_id]['watcher_count']),
+                       QtCore.Qt.DisplayRole)
+          item.setEditable(False)
+          self.setItem(row, self.COL_WATCHER_INDEX, item)
 
-        item = QtGui.QStandardItem()
-        item.setData(QtCore.QVariant(lives[live_id]['comment_count']),
-                     QtCore.Qt.DisplayRole)
-        item.setEditable(False)
-        self.setItem(row, self.COL_COMMENT_INDEX, item)
-      else:
-        # print 'live %s is deleted...' % (live_id)
-        self.removeRow(row)
-    # TODO: 現在設定されているソート順で並べなおす
-    self.lock.release()
+          item = QtGui.QStandardItem()
+          item.setData(QtCore.QVariant(lives[live_id]['comment_count']),
+                       QtCore.Qt.DisplayRole)
+          item.setEditable(False)
+          self.setItem(row, self.COL_COMMENT_INDEX, item)
+        else:
+          # print 'live %s is deleted...' % (live_id)
+          self.removeRow(row)
+      # TODO: 現在設定されているソート順で並べなおす
+    finally:
+      self.lock.release()
 
   def live_handler(self, detail):
     # print 'live %s to be added...' % detail[u'live_id']
 
-    self.lock.acquire()
-    row = self.rowCount()
-    self.setRowCount(row + 1)
+    try:
+      self.lock.acquire()
+      row = self.rowCount()
+      self.setRowCount(row + 1)
 
-    # TODO: 現在設定されているソート順を考慮した挿入
-    for i, key in enumerate(self.COL_KEYS):
-      item = QtGui.QStandardItem()
-      val = detail[key]
-      if isinstance(val, basestring):
-        str = self.RE_LF.sub('', detail[key])
-        item.setData(QtCore.QVariant(QtCore.QString(str)),
-                     QtCore.Qt.DisplayRole)
-      elif isinstance(val, int) or isinstance(val, datetime):
-        item.setData(QtCore.QVariant(val),
-                     QtCore.Qt.DisplayRole)
-        
-      item.setEditable(False)
-      self.setItem(row, i, item)
+      # TODO: 現在設定されているソート順を考慮した挿入
+      for i, key in enumerate(self.COL_KEYS):
+        item = QtGui.QStandardItem()
+        val = detail[key]
+        if isinstance(val, basestring):
+          str = self.RE_LF.sub('', detail[key])
+          item.setData(QtCore.QVariant(QtCore.QString(str)),
+                       QtCore.Qt.DisplayRole)
+        elif isinstance(val, int) or isinstance(val, datetime):
+          item.setData(QtCore.QVariant(val),
+                       QtCore.Qt.DisplayRole)
+          
+        item.setEditable(False)
+        self.setItem(row, i, item)
 
-      self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
-                                           QtCore.QString(detail['title']))
-    self.lock.release()
+        self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
+                                             QtCore.QString(detail['title']))
+    finally:
+      self.lock.release()
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 20000msec = 20sec
