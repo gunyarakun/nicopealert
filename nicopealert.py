@@ -37,7 +37,6 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
   import re
 
   RE_LF = re.compile(r'\r?\n')
-  POLLING_DURATION = 10000 # 20000msec = 20sec
 
   COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'来場数', u'コメ数', u'カテゴリ', u'開始時刻']
   COL_KEYS = [u'live_id', u'title', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'time']
@@ -53,19 +52,6 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     # set header
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
-
-    # first data fetch
-    self.nicopoll = NicoPoll(self.event_callback)
-    self.nicopoll.fetch()
-
-    # set timer for polling
-    self.timer = QtCore.QTimer(self)
-    self.connect(self.timer, QtCore.SIGNAL('timeout()'), self.timer_handler)
-    self.timer.setInterval(self.POLLING_DURATION)
-    self.timer.start()
-
-  def timer_handler(self):
-    self.nicopoll.fetch()
 
   def event_callback(self, type, event):
     print type, event, '\n'
@@ -142,6 +128,8 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     self.lock.release()
 
 class MainWindow(QtGui.QMainWindow):
+  POLLING_DURATION = 10000 # 20000msec = 20sec
+
   def __init__(self, app):
     QtGui.QDialog.__init__(self)
     self.app = app
@@ -150,7 +138,6 @@ class MainWindow(QtGui.QMainWindow):
     self.ui.setupUi(self)
 
     # liveTreeView
-
     self.liveTreeView = self.ui.liveTreeView
     self.liveTreeViewModel = NicoLiveTreeViewModel(self)
     self.liveTreeView.setModel(self.liveTreeViewModel)
@@ -174,10 +161,28 @@ class MainWindow(QtGui.QMainWindow):
 
     # buttons
 
-    self.connect(self.ui.pushButton, QtCore.SIGNAL('clicked()'),
-                 self.accept)
+    self.connect(self.ui.dicFilterPushButton, QtCore.SIGNAL('clicked()'),
+                 self.showDicFilter)
+    self.connect(self.ui.liveFilterPushButton, QtCore.SIGNAL('clicked()'),
+                 self.showLiveFilter)
 
-  def accept(self):
+    # first data fetch
+    self.nicopoll = NicoPoll(self.liveTreeViewModel)
+    self.nicopoll.fetch()
+
+    # set timer for polling
+    self.timer = QtCore.QTimer(self)
+    self.connect(self.timer, QtCore.SIGNAL('timeout()'), self.timer_handler)
+    self.timer.setInterval(self.POLLING_DURATION)
+    self.timer.start()
+
+  def timer_handler(self):
+    self.nicopoll.fetch()
+
+  def showDicFilter(self):
+    pass
+
+  def showLiveFilter(self):
     pass
 
   def liveTreeContextMenu(self, point):

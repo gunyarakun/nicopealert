@@ -24,7 +24,7 @@
        <enum>Qt::LeftToRight</enum>
       </property>
       <property name="currentIndex" >
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab" >
        <property name="sizePolicy" >
@@ -35,6 +35,13 @@
        </property>
        <attribute name="title" >
         <string>大百科</string>
+       </attribute>
+       <attribute name="icon" >
+        <iconset>
+         <normaloff>dic.ico</normaloff>dic.ico</iconset>
+       </attribute>
+       <attribute name="toolTip" >
+        <string>ニコニコ大百科のイベント一覧です。</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2" >
         <item row="5" column="0" >
@@ -53,7 +60,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton" >
+           <widget class="QPushButton" name="dicFilterPushButton" >
             <property name="sizePolicy" >
              <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
@@ -70,7 +77,56 @@
              <enum>Qt::LeftToRight</enum>
             </property>
             <property name="text" >
-             <string>PushButton</string>
+             <string>フィルタする</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0" >
+         <widget class="QTreeView" name="dicTreeView" />
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_2" >
+       <attribute name="title" >
+        <string>生放送</string>
+       </attribute>
+       <attribute name="toolTip" >
+        <string>生放送</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3" >
+        <item row="5" column="0" >
+         <layout class="QHBoxLayout" name="horizontalLayout_2" >
+          <item>
+           <spacer>
+            <property name="orientation" >
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0" >
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="liveFilterPushButton" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize" >
+             <size>
+              <width>0</width>
+              <height>16</height>
+             </size>
+            </property>
+            <property name="text" >
+             <string>フィルタする</string>
             </property>
            </widget>
           </item>
@@ -80,11 +136,6 @@
          <widget class="QTreeView" name="liveTreeView" />
         </item>
        </layout>
-      </widget>
-      <widget class="QWidget" name="tab_2" >
-       <attribute name="title" >
-        <string>Tab 2</string>
-       </attribute>
       </widget>
      </widget>
     </item>
@@ -96,7 +147,7 @@
      <x>0</x>
      <y>0</y>
      <width>708</width>
-     <height>19</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu" >
