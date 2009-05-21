@@ -32,10 +32,11 @@ class NicoPoll:
   # 詳細情報取得待ち生放送idキュー
   live_detail_fetch_queue = Queue.Queue(MAX_LIVE_DETAIL_QUEUE_SIZE)
 
-  def __init__(self, liveTreeViewModel):
+  def __init__(self, dicTreeViewModel, liveTreeViewModel):
     self.opener = urllib2.build_opener()
     self.fetch_thread = threading.Thread(target = self.fetch_live_detail_from_queue)
     self.fetch_thread.start()
+    self.dicTreeViewModel = dicTreeViewModel
     self.liveTreeViewModel = liveTreeViewModel
 
   # not thread safe
@@ -48,7 +49,7 @@ class NicoPoll:
       events = json.JSONDecoder().decode(jsonstr)
 
       current_lives = events['lives']
-      self.liveTreeViewModel.event_callback('current_lives', current_lives)
+      self.liveTreeViewModel.current_lives(current_lives)
 
       for live_id, live_count in current_lives.items():
         if self.live_details.has_key(live_id):
@@ -77,7 +78,7 @@ class NicoPoll:
         detail = self.fetch_live_detail_from_live_id(live_id, opener)
         if detail:
           self.live_details[live_id] = detail
-          self.liveTreeViewModel.event_callback('live', {'detail': detail})
+          self.liveTreeViewModel.live_handler(detail)
         else:
           self.live_detail_fetch_queue.put(live_id, True, self.QUEUE_BLOCK_TIMEOUT)
           self.liveid_queued_set.add(live_id)

@@ -43,15 +43,6 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
 
-  def event_callback(self, type, event):
-    # 注意: callbackは複数のスレッドから呼ばれる。
-    if type == 'current_lives':
-      self.current_lives(event)
-    elif type == 'live':
-      self.live_handler(event)
-    else:
-      print '**** ababa ****'
-
   def current_lives(self, lives):
     # 現在の生放送一覧から、
     # 1. 終わってしまった生放送を取り除く
@@ -82,8 +73,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     # TODO: 現在設定されているソート順で並べなおす
     self.lock.release()
 
-  def live_handler(self, event):
-    detail = event['detail']
+  def live_handler(self, detail):
     print 'live %s to be added...' % detail[u'live_id']
 
     self.lock.acquire()
@@ -157,7 +147,8 @@ class MainWindow(QtGui.QMainWindow):
                  self.showLiveFilter)
 
     # first data fetch
-    self.nicopoll = NicoPoll(self.liveTreeViewModel)
+    self.nicopoll = NicoPoll(self.dicTreeViewModel,
+                             self.liveTreeViewModel)
     self.nicopoll.fetch()
 
     # set timer for polling
