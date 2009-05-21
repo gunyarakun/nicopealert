@@ -4,7 +4,7 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: ニコ生、行の追加・更新・削除にロックが必要。
+# TODO: treeViewいらない！listでいい！
 # TODO: 検索条件付与
 # TODO: コミュアイコン取得
 # TODO: 生ごとの詳細表示
@@ -17,13 +17,33 @@ import threading
 import webbrowser
 
 class NicoDicTreeViewModel(QtGui.QStandardItemModel):
-  COL_NAMES = [u'ID', u'記事種別', u'記事名', u'内容', u'詳細', u'時刻']
+  COL_NAMES = [u'記事種別', u'記事名', u'コメント', u'時刻']
+  COL_KEYS = [u'category', u'view_title', u'comment', u'time']
 
   def __init__(self, mainWindow):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
     self.mainWindow = mainWindow;
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
+
+  def append_event(self, events):
+    for e in events:
+      row = self.rowCount()
+      self.setRowCount(row + 1)
+
+      # TODO: 現在設定されているソート順を考慮した挿入
+      for i, key in enumerate(self.COL_KEYS):
+        item = QtGui.QStandardItem()
+        val = e[key]
+        if isinstance(val, basestring):
+          item.setData(QtCore.QVariant(QtCore.QString(val)),
+                       QtCore.Qt.DisplayRole)
+        elif isinstance(val, int) or isinstance(val, datetime):
+          item.setData(QtCore.QVariant(val),
+                       QtCore.Qt.DisplayRole)
+          
+        item.setEditable(False)
+        self.setItem(row, i, item)
 
 class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
   import re
@@ -55,7 +75,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
       live_id = unicode(self.item(row, 0).text())
 
       if lives.has_key(live_id):
-        print 'live %s count to be freshed' % live_id
+        # print 'live %s count to be freshed' % live_id
         item = QtGui.QStandardItem()
         item.setData(QtCore.QVariant(lives[live_id]['watcher_count']),
                      QtCore.Qt.DisplayRole)
@@ -68,13 +88,13 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
         item.setEditable(False)
         self.setItem(row, self.COL_COMMENT_INDEX, item)
       else:
-        print 'live %s is deleted...' % (live_id)
+        # print 'live %s is deleted...' % (live_id)
         self.removeRow(row)
     # TODO: 現在設定されているソート順で並べなおす
     self.lock.release()
 
   def live_handler(self, detail):
-    print 'live %s to be added...' % detail[u'live_id']
+    # print 'live %s to be added...' % detail[u'live_id']
 
     self.lock.acquire()
     row = self.rowCount()

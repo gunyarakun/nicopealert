@@ -42,32 +42,40 @@ class NicoPoll:
   # not thread safe
   def fetch(self):
     url = 'http://dic.nicovideo.jp:2525/nicopealert.json.gz'
-    print "fetch all"
+    # print "fetch all"
     try:
       jsongz = self.opener.open(url).read()
       jsonstr = zlib.decompress(jsongz)
       events = json.JSONDecoder().decode(jsonstr)
-
-      current_lives = events['lives']
-      self.liveTreeViewModel.current_lives(current_lives)
-
-      for live_id, live_count in current_lives.items():
-        if self.live_details.has_key(live_id):
-          self.live_details[live_id]['watcher_count'] = live_count['watcher_count']
-          self.live_details[live_id]['comment_count'] = live_count['comment_count']
-        elif not live_id in self.liveid_queued_set:
-          while True:
-            try:
-              self.live_detail_fetch_queue.put(live_id)
-              self.liveid_queued_set.add(live_id)
-              break
-            except Queue.Full, e:
-              # TODO: error handling
-              time.sleep(1)
+    except urllib2.HTTPError, e:
+      return
     except zlib.error:
-      pass
-    except:
-      pass
+      return
+
+    current_lives = events['lives']
+    self.liveTreeViewModel.current_lives(current_lives)
+
+    for p in events['pages']:
+      p[u'time'] = datetime.fromtimestamp(p[u'time'])
+    for r in events['reses']:
+      r[u'time'] = datetime.fromtimestamp(r[u'time'])
+
+    self.dicTreeViewModel.append_event(events['pages'])
+    self.dicTreeViewModel.append_event(events['reses'])
+
+    for live_id, live_count in current_lives.items():
+      if self.live_details.has_key(live_id):
+        self.live_details[live_id]['watcher_count'] = live_count['watcher_count']
+        self.live_details[live_id]['comment_count'] = live_count['comment_count']
+      elif not live_id in self.liveid_queued_set:
+        while True:
+          try:
+            self.live_detail_fetch_queue.put(live_id)
+            self.liveid_queued_set.add(live_id)
+            break
+          except Queue.Full, e:
+            # TODO: error handling
+            time.sleep(1)
 
   def fetch_live_detail_from_queue(self):
     opener = urllib2.build_opener()
@@ -89,7 +97,7 @@ class NicoPoll:
 
   def fetch_live_detail_from_live_id(self, live_id, opener):
     url = 'http://dic.nicovideo.jp:2525/%s.json.gz' % live_id.encode('ascii')
-    print "fetch url:%s" % url
+    # print "fetch url:%s" % url
     try:
       jsongz = opener.open(url).read()
       jsonstr = zlib.decompress(jsongz, 15, 65535)
