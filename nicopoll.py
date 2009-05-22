@@ -45,7 +45,9 @@ class NicoPoll:
 
   # not thread safe
   def fetch(self):
-    if self.first:
+    first = self.first
+    self.first = False
+    if first:
       url = 'http://dic.nicovideo.jp:2525/nicopealert-full.json.gz'
     else:
       url = 'http://dic.nicovideo.jp:2525/nicopealert.json.gz'
@@ -65,7 +67,7 @@ class NicoPoll:
     except:
       pass
 
-    if self.first:
+    if first:
       self.add_live_details(current_lives)
     else:
       for live_id, live_count in current_lives.items():
@@ -127,7 +129,7 @@ class NicoPoll:
     for live_id, detail in details.items():
       detail[u'live_id'] = live_id
       detail[u'time'] = datetime.fromtimestamp(detail[u'time'])
-    self.live_details.update(detail)
+    self.live_details.update(details)
     self.liveTreeViewModel.live_handler(details.values())
 
   def fetch_live_detail_from_live_id(self, live_id, opener):
