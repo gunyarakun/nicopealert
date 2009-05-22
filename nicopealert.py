@@ -98,31 +98,30 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     finally:
       self.lock.release()
 
-  def live_handler(self, detail):
-    # print 'live %s to be added...' % detail[u'live_id']
-
+  def live_handler(self, details):
+    self.lock.acquire()
     try:
-      self.lock.acquire()
-      row = self.rowCount()
-      self.setRowCount(row + 1)
+      for d in details:
+        row = self.rowCount()
+        self.setRowCount(row + 1)
 
-      # TODO: 現在設定されているソート順を考慮した挿入
-      for i, key in enumerate(self.COL_KEYS):
-        item = QtGui.QStandardItem()
-        val = detail[key]
-        if isinstance(val, basestring):
-          str = self.RE_LF.sub('', detail[key])
-          item.setData(QtCore.QVariant(QtCore.QString(str)),
-                       QtCore.Qt.DisplayRole)
-        elif isinstance(val, int) or isinstance(val, datetime):
-          item.setData(QtCore.QVariant(val),
-                       QtCore.Qt.DisplayRole)
-          
-        item.setEditable(False)
-        self.setItem(row, i, item)
+        # TODO: 現在設定されているソート順を考慮した挿入
+        for i, key in enumerate(self.COL_KEYS):
+          item = QtGui.QStandardItem()
+          val = d[key]
+          if isinstance(val, basestring):
+            str = self.RE_LF.sub('', d[key])
+            item.setData(QtCore.QVariant(QtCore.QString(str)),
+                         QtCore.Qt.DisplayRole)
+          elif isinstance(val, int) or isinstance(val, datetime):
+            item.setData(QtCore.QVariant(val),
+                         QtCore.Qt.DisplayRole)
+            
+          item.setEditable(False)
+          self.setItem(row, i, item)
 
-        self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
-                                             QtCore.QString(detail['title']))
+          #self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
+          #                                     QtCore.QString(d['title']))
     finally:
       self.lock.release()
 

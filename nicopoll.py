@@ -41,11 +41,14 @@ class NicoPoll:
     self.fetch_thread.start()
     self.dicTreeViewModel = dicTreeViewModel
     self.liveTreeViewModel = liveTreeViewModel
+    self.first = True
 
   # not thread safe
   def fetch(self):
-    url = 'http://dic.nicovideo.jp:2525/nicopealert.json.gz'
-    # print "fetch all"
+    if self.first:
+      url = 'http://dic.nicovideo.jp:2525/nicopealert-full.json.gz'
+    else:
+      url = 'http://dic.nicovideo.jp:2525/nicopealert.json.gz'
     try:
       jsongz = self.opener.open(url).read()
       jsonstr = zlib.decompress(jsongz)
@@ -62,19 +65,22 @@ class NicoPoll:
     except:
       pass
 
-    for live_id, live_count in current_lives.items():
-      if self.live_details.has_key(live_id):
-        self.live_details[live_id]['watcher_count'] = live_count['watcher_count']
-        self.live_details[live_id]['comment_count'] = live_count['comment_count']
-      elif not live_id in self.liveid_queued_set:
-        while True:
-          try:
-            self.live_detail_fetch_queue.put(live_id)
-            self.liveid_queued_set.add(live_id)
-            break
-          except Queue.Full, e:
-            # TODO: error handling
-            time.sleep(1)
+    if self.first:
+      self.add_live_details(current_lives)
+    else:
+      for live_id, live_count in current_lives.items():
+        if self.live_details.has_key(live_id):
+          self.live_details[live_id]['watcher_count'] = live_count['watcher_count']
+          self.live_details[live_id]['comment_count'] = live_count['comment_count']
+        elif not live_id in self.liveid_queued_set:
+          while True:
+            try:
+              self.live_detail_fetch_queue.put(live_id)
+              self.liveid_queued_set.add(live_id)
+              break
+            except Queue.Full, e:
+              # TODO: error handling
+              time.sleep(1)
 
   def dic_event_key(event):
     return '%s/%s:'
@@ -108,8 +114,7 @@ class NicoPoll:
         self.liveid_queued_set.discard(live_id)
         detail = self.fetch_live_detail_from_live_id(live_id, opener)
         if detail:
-          self.live_details[live_id] = detail
-          self.liveTreeViewModel.live_handler(detail)
+          self.add_live_details({live_id: detail})
         else:
           self.live_detail_fetch_queue.put(live_id, True, self.QUEUE_BLOCK_TIMEOUT)
           self.liveid_queued_set.add(live_id)
@@ -117,6 +122,13 @@ class NicoPoll:
       except Queue.Empty:
         # TODO: error handling
         time.sleep(2)
+
+  def add_live_details(self, details):
+    for live_id, detail in details.items():
+      detail[u'live_id'] = live_id
+      detail[u'time'] = datetime.fromtimestamp(detail[u'time'])
+    self.live_details.update(detail)
+    self.liveTreeViewModel.live_handler(details.values())
 
   def fetch_live_detail_from_live_id(self, live_id, opener):
     url = 'http://dic.nicovideo.jp:2525/%s.json.gz' % live_id.encode('ascii')
@@ -126,10 +138,6 @@ class NicoPoll:
       jsonstr = zlib.decompress(jsongz, 15, 65535)
 
       detail = json.JSONDecoder().decode(jsonstr)
-
-      # ちょっと加工
-      detail[u'live_id'] = live_id
-      detail[u'time'] = datetime.fromtimestamp(detail[u'time'])
       return detail
     except urllib2.HTTPError, e:
       print "fetch %s error !!!!! : %s" % (live_id, e.message)
