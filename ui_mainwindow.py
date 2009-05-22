@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nicopealert.ui'
 #
-# Created: Fri May 22 07:09:05 2009
+# Created: Fri May 22 09:36:21 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -73,6 +73,50 @@ class Ui_MainWindow(object):
     self.liveTreeView.setObjectName("liveTreeView")
     self.gridLayout_3.addWidget(self.liveTreeView, 0, 0, 1, 1)
     self.tabWidget.addTab(self.tab_2, "")
+    self.tab_3 = QtGui.QWidget()
+    self.tab_3.setObjectName("tab_3")
+    self.gridLayout_4 = QtGui.QGridLayout(self.tab_3)
+    self.gridLayout_4.setObjectName("gridLayout_4")
+    self.horizontalLayout_3 = QtGui.QHBoxLayout()
+    self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+    spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+    self.horizontalLayout_3.addItem(spacerItem2)
+    self.addWatchListPushButton = QtGui.QPushButton(self.tab_3)
+    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+    sizePolicy.setHorizontalStretch(0)
+    sizePolicy.setVerticalStretch(0)
+    sizePolicy.setHeightForWidth(self.addWatchListPushButton.sizePolicy().hasHeightForWidth())
+    self.addWatchListPushButton.setSizePolicy(sizePolicy)
+    self.addWatchListPushButton.setMinimumSize(QtCore.QSize(0, 16))
+    self.addWatchListPushButton.setObjectName("addWatchListPushButton")
+    self.horizontalLayout_3.addWidget(self.addWatchListPushButton)
+    self.gridLayout_4.addLayout(self.horizontalLayout_3, 5, 0, 1, 1)
+    self.watchListTreeView = QtGui.QTreeView(self.tab_3)
+    self.watchListTreeView.setObjectName("watchListTreeView")
+    self.gridLayout_4.addWidget(self.watchListTreeView, 0, 0, 1, 1)
+    self.tabWidget.addTab(self.tab_3, icon, "")
+    self.tab_4 = QtGui.QWidget()
+    self.tab_4.setObjectName("tab_4")
+    self.gridLayout_5 = QtGui.QGridLayout(self.tab_4)
+    self.gridLayout_5.setObjectName("gridLayout_5")
+    self.horizontalLayout_4 = QtGui.QHBoxLayout()
+    self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+    spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+    self.horizontalLayout_4.addItem(spacerItem3)
+    self.addCommunityPushButton = QtGui.QPushButton(self.tab_4)
+    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+    sizePolicy.setHorizontalStretch(0)
+    sizePolicy.setVerticalStretch(0)
+    sizePolicy.setHeightForWidth(self.addCommunityPushButton.sizePolicy().hasHeightForWidth())
+    self.addCommunityPushButton.setSizePolicy(sizePolicy)
+    self.addCommunityPushButton.setMinimumSize(QtCore.QSize(0, 16))
+    self.addCommunityPushButton.setObjectName("addCommunityPushButton")
+    self.horizontalLayout_4.addWidget(self.addCommunityPushButton)
+    self.gridLayout_5.addLayout(self.horizontalLayout_4, 5, 0, 1, 1)
+    self.communityTreeView = QtGui.QTreeView(self.tab_4)
+    self.communityTreeView.setObjectName("communityTreeView")
+    self.gridLayout_5.addWidget(self.communityTreeView, 0, 0, 1, 1)
+    self.tabWidget.addTab(self.tab_4, "")
     self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
     MainWindow.setCentralWidget(self.centralwidget)
     self.menubar = QtGui.QMenuBar(MainWindow)
@@ -87,7 +131,7 @@ class Ui_MainWindow(object):
     self.menubar.addAction(self.menu.menuAction())
 
     self.retranslateUi(MainWindow)
-    self.tabWidget.setCurrentIndex(1)
+    self.tabWidget.setCurrentIndex(0)
     QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
   def retranslateUi(self, MainWindow):
@@ -97,7 +141,11 @@ class Ui_MainWindow(object):
     self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("MainWindow", "ニコニコ大百科のイベント一覧です。", None, QtGui.QApplication.UnicodeUTF8))
     self.liveFilterPushButton.setText(QtGui.QApplication.translate("MainWindow", "フィルタする", None, QtGui.QApplication.UnicodeUTF8))
     self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "生放送", None, QtGui.QApplication.UnicodeUTF8))
-    self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "生放送", None, QtGui.QApplication.UnicodeUTF8))
+    self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "ニコニコ生放送の放送一覧です。", None, QtGui.QApplication.UnicodeUTF8))
+    self.addWatchListPushButton.setText(QtGui.QApplication.translate("MainWindow", "ウォッチリストを追加する", None, QtGui.QApplication.UnicodeUTF8))
+    self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QtGui.QApplication.translate("MainWindow", "ウォッチリスト", None, QtGui.QApplication.UnicodeUTF8))
+    self.addCommunityPushButton.setText(QtGui.QApplication.translate("MainWindow", "コミュニティを追加", None, QtGui.QApplication.UnicodeUTF8))
+    self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QtGui.QApplication.translate("MainWindow", "コミュニティ", None, QtGui.QApplication.UnicodeUTF8))
     self.menu.setTitle(QtGui.QApplication.translate("MainWindow", "ファイル", None, QtGui.QApplication.UnicodeUTF8))
 
 
