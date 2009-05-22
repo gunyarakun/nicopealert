@@ -15,10 +15,13 @@ from nicopoll import NicoPoll
 from datetime import datetime
 import threading
 import webbrowser
+import re
 
 class NicoDicTreeViewModel(QtGui.QStandardItemModel):
   COL_NAMES = [u'記事種別', u'記事名', u'コメント', u'時刻']
   COL_KEYS = [u'category', u'view_title', u'comment', u'time']
+
+  RE_LF = re.compile(r'\r?\n')
 
   def __init__(self, mainWindow):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
@@ -36,7 +39,8 @@ class NicoDicTreeViewModel(QtGui.QStandardItemModel):
         item = QtGui.QStandardItem()
         val = e[key]
         if isinstance(val, basestring):
-          item.setData(QtCore.QVariant(QtCore.QString(val)),
+          str = self.RE_LF.sub('', val)
+          item.setData(QtCore.QVariant(QtCore.QString(str)),
                        QtCore.Qt.DisplayRole)
         elif isinstance(val, int) or isinstance(val, datetime):
           item.setData(QtCore.QVariant(val),
@@ -46,7 +50,6 @@ class NicoDicTreeViewModel(QtGui.QStandardItemModel):
         self.setItem(row, i, item)
 
 class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
-  import re
 
   RE_LF = re.compile(r'\r?\n')
 

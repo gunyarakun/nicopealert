@@ -32,6 +32,9 @@ class NicoPoll:
   # 詳細情報取得待ち生放送idキュー
   live_detail_fetch_queue = Queue.Queue(MAX_LIVE_DETAIL_QUEUE_SIZE)
 
+  # 大百科詳細情報
+  dic_details = {}
+
   def __init__(self, dicTreeViewModel, liveTreeViewModel):
     self.opener = urllib2.build_opener()
     self.fetch_thread = threading.Thread(target = self.fetch_live_detail_from_queue)
@@ -52,16 +55,12 @@ class NicoPoll:
     except zlib.error:
       return
 
+    self.check_new_dic_events(events)
     current_lives = events['lives']
-    self.liveTreeViewModel.current_lives(current_lives)
-
-    for p in events['pages']:
-      p[u'time'] = datetime.fromtimestamp(p[u'time'])
-    for r in events['reses']:
-      r[u'time'] = datetime.fromtimestamp(r[u'time'])
-
-    self.dicTreeViewModel.append_event(events['pages'])
-    self.dicTreeViewModel.append_event(events['reses'])
+    try:
+      self.liveTreeViewModel.current_lives(current_lives)
+    except:
+      pass
 
     for live_id, live_count in current_lives.items():
       if self.live_details.has_key(live_id):
@@ -76,6 +75,30 @@ class NicoPoll:
           except Queue.Full, e:
             # TODO: error handling
             time.sleep(1)
+
+  def dic_event_key(event):
+    return '%s/%s:'
+
+  def check_new_dic_events(self, events):
+    # UNIX timeをPythonの時刻にする
+    fetched_events = {}
+    for p in events['pages']:
+      p[u'time'] = datetime.fromtimestamp(p[u'time'])
+      key = u'%s/%s/%d' % (p[u'category'], p[u'title'], p[u'rev_no'])
+      fetched_events[key] = p
+    for r in events['reses']:
+      r[u'time'] = datetime.fromtimestamp(r[u'time'])
+      key = u'%s/%s/%d' % (r[u'category'], r[u'title'], r[u'res_no'])
+      fetched_events[key] = r
+
+    # 前回のと違うイベントだけをTreeViewに通知
+    new_keys = set(fetched_events.keys()) - set(self.dic_details.keys())
+    new_events = []
+    for k in new_keys:
+      new_events.append(fetched_events[k])
+
+    self.dicTreeViewModel.append_event(new_events)
+    self.dic_details.update(fetched_events)
 
   def fetch_live_detail_from_queue(self):
     opener = urllib2.build_opener()
