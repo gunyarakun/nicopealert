@@ -24,31 +24,36 @@ class NicoDicTreeViewModel(QtGui.QStandardItemModel):
 
   RE_LF = re.compile(r'\r?\n')
 
-  def __init__(self, mainWindow):
+  def __init__(self, mainWindow, treeView):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
-    self.mainWindow = mainWindow;
+    self.mainWindow = mainWindow
+    self.treeView = treeView
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
 
   def append_event(self, events):
-    for e in events:
-      row = self.rowCount()
-      self.setRowCount(row + 1)
+    self.treeView.setUpdatesEnabled(False)
+    try:
+      for e in events:
+        row = self.rowCount()
+        self.setRowCount(row + 1)
 
-      # TODO: 現在設定されているソート順を考慮した挿入
-      for i, key in enumerate(self.COL_KEYS):
-        item = QtGui.QStandardItem()
-        val = e[key]
-        if isinstance(val, basestring):
-          str = self.RE_LF.sub('', val)
-          item.setData(QtCore.QVariant(QtCore.QString(str)),
-                       QtCore.Qt.DisplayRole)
-        elif isinstance(val, int) or isinstance(val, datetime):
-          item.setData(QtCore.QVariant(val),
-                       QtCore.Qt.DisplayRole)
-          
-        item.setEditable(False)
-        self.setItem(row, i, item)
+        # TODO: 現在設定されているソート順を考慮した挿入
+        for i, key in enumerate(self.COL_KEYS):
+          item = QtGui.QStandardItem()
+          val = e[key]
+          if isinstance(val, basestring):
+            str = self.RE_LF.sub('', val)
+            item.setData(QtCore.QVariant(QtCore.QString(str)),
+                         QtCore.Qt.DisplayRole)
+          elif isinstance(val, int) or isinstance(val, datetime):
+            item.setData(QtCore.QVariant(val),
+                         QtCore.Qt.DisplayRole)
+            
+          item.setEditable(False)
+          self.setItem(row, i, item)
+    finally:
+      self.treeView.setUpdatesEnabled(True)
 
 class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
@@ -61,9 +66,10 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
   lock = threading.Lock()
 
-  def __init__(self, mainWindow):
+  def __init__(self, mainWindow, treeView):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
-    self.mainWindow = mainWindow;
+    self.mainWindow = mainWindow
+    self.treeView = treeView
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
 
@@ -72,6 +78,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     # 1. 終わってしまった生放送を取り除く
     # 2. 放送中の生放送の視聴者数とコメント数を更新する
 
+    self.treeView.setUpdatesEnabled(False)
     self.lock.acquire()
     try:
       rows = self.rowCount()
@@ -97,6 +104,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
       # TODO: 現在設定されているソート順で並べなおす
     finally:
       self.lock.release()
+      self.treeView.setUpdatesEnabled(True)
 
   def live_handler(self, details):
     self.lock.acquire()
@@ -137,7 +145,7 @@ class MainWindow(QtGui.QMainWindow):
 
     # dicTreeView
     self.dicTreeView = self.ui.dicTreeView
-    self.dicTreeViewModel = NicoDicTreeViewModel(self)
+    self.dicTreeViewModel = NicoDicTreeViewModel(self, self.dicTreeView)
     self.dicTreeView.setModel(self.dicTreeViewModel)
     self.dicTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.dicTreeView.setColumnWidth(0, 80)
@@ -145,7 +153,7 @@ class MainWindow(QtGui.QMainWindow):
 
     # liveTreeView
     self.liveTreeView = self.ui.liveTreeView
-    self.liveTreeViewModel = NicoLiveTreeViewModel(self)
+    self.liveTreeViewModel = NicoLiveTreeViewModel(self, self.liveTreeView)
     self.liveTreeView.setModel(self.liveTreeViewModel)
     self.liveTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.liveTreeView.setColumnWidth(0, 80)
