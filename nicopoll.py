@@ -2,8 +2,6 @@
 
 # ニコ生クラス
 
-# TODO: start/end timeを取得 -> GC
-
 import re
 import urllib2
 import Queue

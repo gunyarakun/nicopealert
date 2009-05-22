@@ -4,7 +4,8 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: treeViewいらない！listでいい！
+# TODO: コミュ・ウォッチリスト登録
+# TODO: 上記登録のもののみ通知 & 自動立ち上げ？
 # TODO: 検索条件付与
 # TODO: コミュアイコン取得
 # TODO: 生ごとの詳細表示
@@ -126,7 +127,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
       self.lock.release()
 
 class MainWindow(QtGui.QMainWindow):
-  POLLING_DURATION = 10000 # 20000msec = 20sec
+  POLLING_DURATION = 10000 # 10000msec = 10sec
 
   def __init__(self, app):
     QtGui.QDialog.__init__(self)
