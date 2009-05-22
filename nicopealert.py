@@ -72,10 +72,9 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     # 1. 終わってしまった生放送を取り除く
     # 2. 放送中の生放送の視聴者数とコメント数を更新する
 
-    rows = self.rowCount()
-
+    self.lock.acquire()
     try:
-      self.lock.acquire()
+      rows = self.rowCount()
       for row in xrange(0, rows):
         live_id = unicode(self.item(row, 0).text())
 
