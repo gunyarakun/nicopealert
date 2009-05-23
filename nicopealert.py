@@ -1,15 +1,14 @@
-#!/usr/local/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: sort/filter
 # TODO: コミュ・ウォッチリスト登録
 # TODO: 上記登録のもののみ通知 & 自動立ち上げ？
-# TODO: カラム移動
-# TODO: 検索条件付与
-# TODO: コミュアイコン取得
+# TODO: コミュ・ウォッチリストの保存
+# TODO: コミュ・ウォッチリスト対象の背景色変更
+# TODO: カラム移動・サイズの記憶
 # TODO: 生ごとの詳細表示
 
 from PyQt4 import QtCore, QtGui
@@ -19,14 +18,16 @@ from datetime import datetime
 import threading
 import webbrowser
 import re
+import urllib
 import cPickle as pickle
 
 class NicoDicTableModel(QtCore.QAbstractTableModel):
   COL_NAMES = [QtCore.QVariant(u'記事種別'),
                QtCore.QVariant(u'記事名'),
+               QtCore.QVariant(u'表示用記事名'),
                QtCore.QVariant(u'コメント'),
                QtCore.QVariant(u'時刻')]
-  COL_KEYS = [u'category', u'view_title', u'comment', u'time']
+  COL_KEYS = [u'category', u'title', u'view_title', u'comment', u'time']
 
   RE_LF = re.compile(r'\r?\n')
 
@@ -300,6 +301,12 @@ class MainWindow(QtGui.QMainWindow):
     self.dicTreeView.setSortingEnabled(True)
     self.dicTreeView.setRootIsDecorated(False)
     self.dicTreeView.setAlternatingRowColors(True)
+    # 記事名カラムを隠す
+    self.dicTreeView.hideColumn(1)
+
+    self.connect(self.dicTreeView,
+                 QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
+                 self.dicTreeContextMenu)
 
     # liveTreeView
     self.liveTreeView = self.ui.liveTreeView
@@ -402,6 +409,24 @@ class MainWindow(QtGui.QMainWindow):
 
   def liveWatchlistCheckBoxToggled(self):
     self.liveFilterModel.setCommunityFilter(self.ui.liveCommunityCheckBox.isChecked())
+
+  def dicTreeContextMenu(self, point):
+    tree_index = self.dicTreeView.indexAt(point)
+    dic_index = self.dicFilterModel.index(tree_index.row(), 0)
+    cat = self.dicFilterModel.data(dic_index).toString()
+    dic_index = self.dicFilterModel.index(tree_index.row(), 1)
+    title = self.dicFilterModel.data(dic_index).toString()
+    dic_index = self.dicFilterModel.index(tree_index.row(), 2)
+    view_title = self.dicFilterModel.data(dic_index).toString()
+
+    url = 'http://dic.nicovideo.jp/%s/%s' % (cat, urllib.quote(title.toUtf8()))
+
+    popup_menu = QtGui.QMenu(self)
+    popup_menu.addAction(u'記事/掲示板を見る', lambda: webbrowser.open(url))
+    popup_menu.addAction(u'URLをコピー', lambda: self.app.clipboard().setText(QtCore.QString(url)))
+    popup_menu.addSeparator()
+    popup_menu.addAction(u'ウォッチリストに追加', lambda: self.addWatchlist(cat, title, view_title))
+    popup_menu.exec_(self.dicTreeView.mapToGlobal(point))
 
   def liveTreeContextMenu(self, point):
     tree_index = self.liveTreeView.indexAt(point)
