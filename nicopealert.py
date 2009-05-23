@@ -5,9 +5,10 @@
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
 # TODO: コミュ・ウォッチリスト登録
-# TODO: 上記登録のもののみ通知 & 自動立ち上げ？
 # TODO: コミュ・ウォッチリストの保存
 # TODO: コミュ・ウォッチリスト対象の背景色変更
+# TODO: 検索条件の追加・保存
+# TODO: なくなった生を削除する部分の復活。
 # TODO: カラム移動・サイズの記憶
 # TODO: 生ごとの詳細表示
 
@@ -51,7 +52,7 @@ class NicoDicTableModel(QtCore.QAbstractTableModel):
     return QtCore.QVariant(self.datas[index.row()][index.column()])
 
   def dic_id(self, row_no):
-    self.ids[row_no]
+    return self.ids[row_no]
 
   def headerData(self, col, orientation, role):
     if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -230,6 +231,48 @@ class LiveFilterProxyModel(QtGui.QSortFilterProxyModel):
     self.communityFilter = bool
     self.invalidateFilter()
 
+class WatchlistTableModel(QtCore.QAbstractTableModel):
+  COL_NAMES = [QtCore.QVariant(u'カテゴリ'),
+               QtCore.QVariant(u'記事名'),
+               QtCore.QVariant(u'表示用記事名')]
+
+  def __init__(self, mainWindow):
+    QtCore.QAbstractTableModel.__init__(self, mainWindow)
+    self.mainWindow = mainWindow
+    self.datas = []
+
+  def rowCount(self, parent):
+    return len(self.datas)
+
+  def columnCount(self, parent):
+    return len(self.COL_NAMES)
+
+  def data(self, index, role):
+    if not index.isValid():
+      return QtCore.QVariant()
+    elif role != QtCore.Qt.DisplayRole:
+      return QtCore.QVariant()
+    return QtCore.QVariant(self.datas[index.row()][index.column()])
+
+  def headerData(self, col, orientation, role):
+    if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+      return self.COL_NAMES[col]
+    return QtCore.QVariant()
+
+  def addWatchlist(self, articles):
+    if len(articles) == 0:
+      return
+    rowcount = len(self.datas)
+    self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(articles) - 1)
+    try:
+      for dic_id, dic_data in articles.items():
+        row = [QtCore.QVariant(QtCore.QString(dic_data['category'])),
+               QtCore.QVariant(QtCore.QString(dic_data['title'])),
+               QtCore.QVariant(QtCore.QString(dic_data['view_title']))]
+        self.datas.append(row)
+    finally:
+      self.endInsertRows()
+
 class CommunityTableModel(QtCore.QAbstractTableModel):
   COL_NAMES = [QtCore.QVariant(u'コミュID'),
                QtCore.QVariant(u'コミュ名')]
@@ -326,7 +369,7 @@ class MainWindow(QtGui.QMainWindow):
 
     # watchlistTreeView
     self.watchlistTreeView = self.ui.watchlistTreeView
-    self.watchlistTableModel = CommunityTableModel(self) # FIXME:
+    self.watchlistTableModel = WatchlistTableModel(self)
     self.watchlistTreeView.setModel(self.watchlistTableModel)
     self.watchlistTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.watchlistTreeView.setColumnWidth(0, 80)
@@ -445,6 +488,14 @@ class MainWindow(QtGui.QMainWindow):
     popup_menu.addAction(u'コミュニティを通知対象にする', lambda: self.addCommunity(com_id, com_name))
     #popup_menu.addAction(u'主を通知対象にする')
     popup_menu.exec_(self.liveTreeView.mapToGlobal(point))
+
+  def addWatchlist(self, category, title, view_title):
+    key = '%s%s' % (category, title)
+    i = {key: {'category': category,
+               'title': title,
+               'view_title': view_title}}
+    self.watchlistTableModel.addWatchlist(i)
+    self.watchlist.update(i)
 
   def addCommunity(self, com_id, com_name):
     u = {com_id: {'name': com_name}}
