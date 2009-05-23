@@ -325,38 +325,33 @@ class UserTabWidget(QtGui.QWidget):
     tabWidget = mainWindow.ui.tabWidget
     QtGui.QWidget.__init__(self, tabWidget)
 
-    # TODO: クラスで共通化できる部品はないか？
-
     sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
     sizePolicy.setHorizontalStretch(0)
     sizePolicy.setVerticalStretch(0)
     sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
-    # self.tabWidget.setObjectName("tabWidget")
     self.setSizePolicy(sizePolicy)
-    # self.tab.setObjectName("tab")
 
     # 各種レイアウト
     gridLayout = QtGui.QGridLayout(self)
     # self.gridLayout_2.setObjectName("gridLayout_2")
     horizontalLayout = QtGui.QHBoxLayout()
-    # self.horizontalLayout.setObjectName("horizontalLayout")
 
     # 検索キーワード用LineEditとLabel
     label = QtGui.QLabel(self)
-    label.setText(QtGui.QApplication.translate('MainWindow',
-                                               '検索キーワード',
-                                               None,
-                                               QtGui.QApplication.UnicodeUTF8))
-    # self.label.setObjectName("label")
+    label.setText(self.trUtf8('検索キーワード'))
     horizontalLayout.addWidget(label)
     self.keywordLineEdit = QtGui.QLineEdit(self)
-    # self.dicKeywordLineEdit.setObjectName("dicKeywordLineEdit")
     horizontalLayout.addWidget(self.keywordLineEdit)
     label.setBuddy(self.keywordLineEdit)
+    self.connect(self.keywordLineEdit,
+                 QtCore.SIGNAL('textChanged(const QString &)'),
+                 self.keywordLineEditChanged)
 
     # リスト(ウォッチリスト/コミュニティリスト)でのフィルタCheckBox
     self.listFilterCheckBox = QtGui.QCheckBox(self)
-    # self.dicWatchlistCheckBox.setObjectName("dicWatchlistCheckBox")
+    self.connect(self.listFilterCheckBox,
+                 QtCore.SIGNAL('toggled(bool)'),
+                 self.listFilterCheckBoxToggled)
     horizontalLayout.addWidget(self.listFilterCheckBox)
 
     # 横スペーサ
@@ -372,14 +367,22 @@ class UserTabWidget(QtGui.QWidget):
     self.addTabPushButton.setSizePolicy(sizePolicy)
     self.addTabPushButton.setMinimumSize(QtCore.QSize(0, 16))
     self.addTabPushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
-    # self.newTabPushButton.setObjectName("dicFilterPushButton")
+    self.connect(self.addTabPushButton, QtCore.SIGNAL('clicked()'),
+                 self.addTab)
     horizontalLayout.addWidget(self.addTabPushButton)
 
     gridLayout.addLayout(horizontalLayout, 5, 0, 1, 1)
 
     # イベント表示用TreeView
     self.treeView = QtGui.QTreeView(self)
-    # self.treeView.setObjectName("dicTreeView")
+    self.treeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.treeView.setColumnWidth(0, 80)
+    self.treeView.setSortingEnabled(True)
+    self.treeView.setRootIsDecorated(False)
+    self.treeView.setAlternatingRowColors(True)
+    self.connect(self.treeView,
+                 QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
+                 self.handleContextMenu)
     gridLayout.addWidget(self.treeView, 0, 0, 1, 1)
 
     # 文字列とかアイコンとか
@@ -394,6 +397,29 @@ class UserTabWidget(QtGui.QWidget):
     self.listFilterCheckBox.setText(self.trUtf8(self.LIST_FILTER_CHECKBOX_TEXT))
     self.addTabPushButton.setText(self.trUtf8(self.ADD_TAB_PUSH_BUTTON_TEXT))
 
+  def handleContextMenu(self, point):
+    tree_index = self.treeView.indexAt(point)
+    filterModel_index = self.filterModel.index(tree_index)
+    tableModel_index = self.filterModel.mapToSource(filterModel_index)
+
+    popup_menu = QtGui.QMenu(self)
+    # サブクラスで実装する。
+    self.addContextMenuAction(self, popup_menu, tableModel_index)
+    popup_menu.exec_(self.treeView.mapToGlobal(point))
+
+  def addTab(self):
+    # TODO: 現在の条件で新しいタブを作る。
+    pass
+
+  def keywordLineEditChanged(self):
+    # TODO: 検索キーワードの切り替え
+    pass
+
+  def listFilterCheckBoxToggled(self):
+    # TODO: filterの切り替え
+    pass
+
+
 class DicUserTabWidget(UserTabWidget):
   ICON_FILE_NAME = 'dic.ico'
   TAB_TEXT = '大百科'
@@ -401,12 +427,35 @@ class DicUserTabWidget(UserTabWidget):
   LIST_FILTER_CHECKBOX_TEXT = 'ウォッチリストで絞る'
   ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
 
+  def __init__(self, mainWindow):
+    self.tableModel = mainWindow.dicTableModel
+    self.filterModel = mainWindow.dicFilterModel
+    UserTabWidget.__init__(self, mainWindow)
+
+    self.treeView.setModel(self.filterModel)
+    self.treeView.hideColumn(1) # 表示用じゃない記事名は隠す。
+
+  def addContextMenuAction(self, menu, table_index):
+    # FIXME: implement
+    menu.addAction(u'記事/掲示板を見る', lambda: webbrowser.open(url))
+
 class LiveUserTabWidget(UserTabWidget):
   ICON_FILE_NAME = 'live.ico'
   TAB_TEXT = '生放送'
   TAB_TOOL_TIP = 'ニコニコ生放送のイベント一覧です。'
   LIST_FILTER_CHECKBOX_TEXT = 'コミュニティリストで絞る'
   ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
+
+  def __init__(self, mainWindow):
+    self.tableModel = mainWindow.liveTableModel
+    self.filterModel = mainWindow.liveFilterModel
+    UserTabWidget.__init__(self, mainWindow)
+
+    self.treeView.setModel(self.filterModel)
+
+  def addContextMenuAction(self, menu, table_index):
+    # FIXME: implement
+    menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
@@ -484,6 +533,10 @@ class MainWindow(QtGui.QMainWindow):
     self.communityTreeView.setRootIsDecorated(False)
     self.communityTreeView.setAlternatingRowColors(True)
     self.communityTableModel.addCommunityList(self.communityList)
+
+    # new user tab widget !!!
+    DicUserTabWidget(self)
+    LiveUserTabWidget(self)
 
     # trayIcon/trayIconMenu/trayIconImg
 
