@@ -18,44 +18,57 @@ import threading
 import webbrowser
 import re
 
-class NicoDicTableViewModel(QtGui.QStandardItemModel):
-  COL_NAMES = [u'記事種別', u'記事名', u'コメント', u'時刻']
+class NicoDicTableModel(QtCore.QAbstractTableModel):
+  COL_NAMES = [QtCore.QVariant(u'記事種別'),
+               QtCore.QVariant(u'記事名'),
+               QtCore.QVariant(u'コメント'),
+               QtCore.QVariant(u'時刻')]
   COL_KEYS = [u'category', u'view_title', u'comment', u'time']
 
   RE_LF = re.compile(r'\r?\n')
 
-  def __init__(self, mainWindow, tableView):
-    QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
+  def __init__(self, mainWindow):
+    QtCore.QAbstractTableModel.__init__(self, mainWindow)
     self.mainWindow = mainWindow
-    self.tableView = tableView
-    for i, c in enumerate(self.COL_NAMES):
-      self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
+    self.datas = []
+
+  def rowCount(self, parent):
+    return len(self.datas)
+
+  def columnCount(self, parent):
+    return len(self.COL_NAMES)
+
+  def data(self, index, role):
+    if not index.isValid():
+      return QtCore.QVariant()
+    elif role != QtCore.Qt.DisplayRole:
+      return QtCore.QVariant()
+    return QtCore.QVariant(self.datas[index.row()][index.column()])
+
+  def headerData(self, col, orientation, role):
+    if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+      return self.COL_NAMES[col]
+    return QtCore.QVariant()
 
   def append_event(self, events):
-    self.tableView.setUpdatesEnabled(False)
-    try:
-      for e in events:
-        row = self.rowCount()
-        self.setRowCount(row + 1)
+    rowcount = len(self.datas)
+    self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(events))
+    for e in events:
+      row = []
+      for key in self.COL_KEYS:
+        item = QtGui.QStandardItem()
+        val = e[key]
+        if isinstance(val, basestring):
+          str = self.RE_LF.sub('', val)
+          row.append(QtCore.QVariant(QtCore.QString(str)))
+        elif isinstance(val, int) or isinstance(val, datetime):
+          row.append(QtCore.QVariant(val))
+        elif val is None:
+          row.append(QtCore.QVariant())
+      self.datas.append(row)
+    self.endInsertRows()
 
-        # TODO: 現在設定されているソート順を考慮した挿入
-        for i, key in enumerate(self.COL_KEYS):
-          item = QtGui.QStandardItem()
-          val = e[key]
-          if isinstance(val, basestring):
-            str = self.RE_LF.sub('', val)
-            item.setData(QtCore.QVariant(QtCore.QString(str)),
-                         QtCore.Qt.DisplayRole)
-          elif isinstance(val, int) or isinstance(val, datetime):
-            item.setData(QtCore.QVariant(val),
-                         QtCore.Qt.DisplayRole)
-            
-          item.setEditable(False)
-          self.setItem(row, i, item)
-    finally:
-      self.tableView.setUpdatesEnabled(True)
-
-class NicoLiveTableViewModel(QtGui.QStandardItemModel):
+class NicoLiveTableModel(QtGui.QStandardItemModel):
 
   RE_LF = re.compile(r'\r?\n')
 
@@ -145,8 +158,8 @@ class MainWindow(QtGui.QMainWindow):
 
     # dicTableView
     self.dicTableView = self.ui.dicTableView
-    self.dicTableViewModel = NicoDicTableViewModel(self, self.dicTableView)
-    self.dicTableView.setModel(self.dicTableViewModel)
+    self.dicTableModel = NicoDicTableModel(self)
+    self.dicTableView.setModel(self.dicTableModel)
     self.dicTableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.dicTableView.setColumnWidth(0, 80)
     self.dicTableView.setSortingEnabled(True)
@@ -156,13 +169,13 @@ class MainWindow(QtGui.QMainWindow):
 
     # liveTableView
     self.liveTableView = self.ui.liveTableView
-    self.liveTableViewModel = NicoLiveTableViewModel(self, self.liveTableView)
-    self.liveTableView.setModel(self.liveTableViewModel)
+    self.liveTableModel = NicoLiveTableModel(self, self.liveTableView)
+    self.liveTableView.setModel(self.liveTableModel)
     self.liveTableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.liveTableView.setColumnWidth(0, 80)
     self.liveTableView.setSortingEnabled(True)
     self.liveTableView.setShowGrid(False)
-    self.dicTableView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
+    self.liveTableView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
     self.liveTableView.verticalHeader().hide()
 
     self.connect(self.liveTableView,
@@ -187,8 +200,8 @@ class MainWindow(QtGui.QMainWindow):
                  self.showLiveFilter)
 
     # first data fetch
-    self.nicopoll = NicoPoll(self.dicTableViewModel,
-                             self.liveTableViewModel)
+    self.nicopoll = NicoPoll(self.dicTableModel,
+                             self.liveTableModel)
     self.nicopoll.fetch()
 
     # set timer for polling
@@ -208,7 +221,7 @@ class MainWindow(QtGui.QMainWindow):
 
   def liveTreeContextMenu(self, point):
     tree_index = self.liveTableView.indexAt(point)
-    target_live_id = self.liveTableViewModel.item(tree_index.row(), 0).text()
+    target_live_id = self.liveTableModel.item(tree_index.row(), 0).text()
     url = 'http://live.nicovideo.jp/watch/' + target_live_id
 
     popup_menu = QtGui.QMenu(self)
