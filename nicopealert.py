@@ -4,11 +4,16 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: コミュ・ウォッチリスト対象の背景色変更
 # TODO: 検索条件の追加・保存
+# TODO: カラムサイズ初期値設定
+# TODO: コミュ・ウォッチリスト対象の背景色変更
+# TODO: timer_handlerのスレッド化。詰まることがあるかもしれないので。
 # TODO: なくなった生を削除する部分の復活。
 # TODO: カラム移動・サイズの記憶
 # TODO: 生ごとの詳細表示
+# TODO: リファクタリング
+# TODO: ネットワーク無効実験
+# TODO: エラーハンドリング丁寧に、エラー報告ツール
 
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
