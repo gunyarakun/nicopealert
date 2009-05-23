@@ -53,97 +53,112 @@ class NicoDicTableModel(QtCore.QAbstractTableModel):
   def append_event(self, events):
     rowcount = len(self.datas)
     self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(events))
-    for e in events:
-      row = []
-      for key in self.COL_KEYS:
-        item = QtGui.QStandardItem()
-        val = e[key]
-        if isinstance(val, basestring):
-          str = self.RE_LF.sub('', val)
-          row.append(QtCore.QVariant(QtCore.QString(str)))
-        elif isinstance(val, int) or isinstance(val, datetime):
-          row.append(QtCore.QVariant(val))
-        elif val is None:
-          row.append(QtCore.QVariant())
-      self.datas.append(row)
-    self.endInsertRows()
+    try:
+      for e in events:
+        row = []
+        for key in self.COL_KEYS:
+          item = QtGui.QStandardItem()
+          val = e[key]
+          if isinstance(val, basestring):
+            str = self.RE_LF.sub('', val)
+            row.append(QtCore.QVariant(QtCore.QString(str)))
+          elif isinstance(val, int) or isinstance(val, datetime):
+            row.append(QtCore.QVariant(val))
+          elif val is None:
+            row.append(QtCore.QVariant())
+        self.datas.append(row)
+    finally:
+      self.endInsertRows()
 
-class NicoLiveTableModel(QtGui.QStandardItemModel):
+class NicoLiveTableModel(QtCore.QAbstractTableModel):
+  COL_NAMES = [QtCore.QVariant(u'ID'),
+               QtCore.QVariant(u'タイトル'),
+               QtCore.QVariant(u'コミュ名'),
+               QtCore.QVariant(u'生主'),
+               QtCore.QVariant(u'来場数'),
+               QtCore.QVariant(u'コメ数'),
+               QtCore.QVariant(u'カテゴリ'),
+               QtCore.QVariant(u'開始時刻')]
+  COL_KEYS = [u'live_id', u'title', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'time']
 
   RE_LF = re.compile(r'\r?\n')
 
-  COL_NAMES = [u'ID', u'タイトル', u'コミュ名', u'生主', u'来場数', u'コメ数', u'カテゴリ', u'開始時刻']
-  COL_KEYS = [u'live_id', u'title', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'time']
   COL_WATCHER_INDEX = 4
   COL_COMMENT_INDEX = 5
 
   lock = threading.Lock()
 
-  def __init__(self, mainWindow, tableView):
-    QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
+  def __init__(self, mainWindow):
+    QtCore.QAbstractTableModel.__init__(self, mainWindow)
     self.mainWindow = mainWindow
-    self.tableView = tableView
-    for i, c in enumerate(self.COL_NAMES):
-      self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
+    self.datas = []
+
+  def rowCount(self, parent):
+    return len(self.datas)
+
+  def columnCount(self, parent):
+    return len(self.COL_NAMES)
+
+  def data(self, index, role):
+    if not index.isValid():
+      return QtCore.QVariant()
+    elif role != QtCore.Qt.DisplayRole:
+      return QtCore.QVariant()
+    return QtCore.QVariant(self.datas[index.row()][index.column()])
+
+  def headerData(self, col, orientation, role):
+    if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+      return self.COL_NAMES[col]
+    return QtCore.QVariant()
 
   def current_lives(self, lives):
     # 現在の生放送一覧から、
     # 1. 終わってしまった生放送を取り除く
     # 2. 放送中の生放送の視聴者数とコメント数を更新する
 
-    self.tableView.setUpdatesEnabled(False)
     self.lock.acquire()
     try:
-      rows = self.rowCount()
-      for row in xrange(0, rows):
+      for row in xrange(0, self.datas):
         live_id = unicode(self.item(row, 0).text())
 
         if lives.has_key(live_id):
           # print 'live %s count to be freshed' % live_id
-          item = QtGui.QStandardItem()
-          item.setData(QtCore.QVariant(lives[live_id]['watcher_count']),
-                       QtCore.Qt.DisplayRole)
-          item.setEditable(False)
-          self.setItem(row, self.COL_WATCHER_INDEX, item)
-
-          item = QtGui.QStandardItem()
-          item.setData(QtCore.QVariant(lives[live_id]['comment_count']),
-                       QtCore.Qt.DisplayRole)
-          item.setEditable(False)
-          self.setItem(row, self.COL_COMMENT_INDEX, item)
+          self.datas[row][self.COL_WATCHER_INDEX] = QtCore.QVariant(
+            lives[live_id]['watcher_count'])
+          self.datas[row][self.COL_COMMENT_INDEX] = QtCore.QVariant(
+            lives[live_id]['comment_count'])
         else:
           # print 'live %s is deleted...' % (live_id)
-          self.removeRow(row)
-      # TODO: 現在設定されているソート順で並べなおす
+          # TODO: remove after!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          # self.removeRow(row)
+          pass
+      st_index = self.index(0, self.COL_WATCHER_INDEX)
+      ed_index = self.index(len(self.datas), self.COL_COMMENT_INDEX)
+      self.dataChanged(st_index, ed_index)
     finally:
       self.lock.release()
-      self.tableView.setUpdatesEnabled(True)
 
   def live_handler(self, details):
     self.lock.acquire()
     try:
+      rowcount = len(self.datas)
+      self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(details))
       for d in details:
-        row = self.rowCount()
-        self.setRowCount(row + 1)
-
-        # TODO: 現在設定されているソート順を考慮した挿入
-        for i, key in enumerate(self.COL_KEYS):
-          item = QtGui.QStandardItem()
+        row = []
+        for key in self.COL_KEYS:
           val = d[key]
           if isinstance(val, basestring):
-            str = self.RE_LF.sub('', d[key])
-            item.setData(QtCore.QVariant(QtCore.QString(str)),
-                         QtCore.Qt.DisplayRole)
+            str = self.RE_LF.sub('', val)
+            row.append(QtCore.QVariant(QtCore.QString(str)))
           elif isinstance(val, int) or isinstance(val, datetime):
-            item.setData(QtCore.QVariant(val),
-                         QtCore.Qt.DisplayRole)
-            
-          item.setEditable(False)
-          self.setItem(row, i, item)
-
-          #self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
-          #                                     QtCore.QString(d['title']))
+            row.append(QtCore.QVariant(val))
+          elif val is None:
+            row.append(QtCore.QVariant())
+        self.datas.append(row)
+      #self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
+      #                                     QtCore.QString(d['title']))
     finally:
+      self.endInsertRows()
       self.lock.release()
 
 class MainWindow(QtGui.QMainWindow):
@@ -169,7 +184,7 @@ class MainWindow(QtGui.QMainWindow):
 
     # liveTableView
     self.liveTableView = self.ui.liveTableView
-    self.liveTableModel = NicoLiveTableModel(self, self.liveTableView)
+    self.liveTableModel = NicoLiveTableModel(self)
     self.liveTableView.setModel(self.liveTableModel)
     self.liveTableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.liveTableView.setColumnWidth(0, 80)
