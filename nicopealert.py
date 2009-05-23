@@ -19,6 +19,7 @@ from datetime import datetime
 import threading
 import webbrowser
 import re
+import cPickle as pickle
 
 class NicoDicTableModel(QtCore.QAbstractTableModel):
   COL_NAMES = [QtCore.QVariant(u'記事種別'),
@@ -170,18 +171,26 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
 class DicFilterProxyModel(QtGui.QSortFilterProxyModel):
   def __init__(self, mainWindow):
     QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
-    self.mainWindow = mainWindow
+    self.watchlist = mainWindow.watchlist
 
   def filterAcceptsRow(self, source_row, source_parent):
-    return True
+    cond = False
+    for i in xrange(self.sourceModel().columnCount(None)):
+      idx = self.sourceModel().index(source_row, i, source_parent)
+      cond |= self.sourceModel().data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
+    return cond
 
 class LiveFilterProxyModel(QtGui.QSortFilterProxyModel):
   def __init__(self, mainWindow):
     QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
-    self.mainWindow = mainWindow
+    self.communities = mainWindow.communities
 
   def filterAcceptsRow(self, source_row, source_parent):
-    return True
+    cond = False
+    for i in xrange(self.sourceModel().columnCount(None)):
+      idx = self.sourceModel().index(source_row, i, source_parent)
+      cond |= self.sourceModel().data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
+    return cond
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
@@ -192,6 +201,16 @@ class MainWindow(QtGui.QMainWindow):
 
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
+
+    # load settings
+    try:
+      f = file('nicopealert.dat', 'rb')
+      settings = pickle.load(f)
+      self.watchlist = settings['watchlist']
+      self.communities = settings['communities']
+    except:
+      self.watchlist = []
+      self.communities = []
 
     # dicTreeView
     self.dicTreeView = self.ui.dicTreeView
@@ -231,12 +250,17 @@ class MainWindow(QtGui.QMainWindow):
     self.trayIcon.setIcon(self.trayIconImg)
     self.trayIcon.show()
 
-    # buttons
-
+    # events
     self.connect(self.ui.dicFilterPushButton, QtCore.SIGNAL('clicked()'),
                  self.showDicFilter)
     self.connect(self.ui.liveFilterPushButton, QtCore.SIGNAL('clicked()'),
                  self.showLiveFilter)
+    self.connect(self.ui.dicKeywordLineEdit,
+                 QtCore.SIGNAL('textChanged(const QString &)'),
+                 self.dicKeywordLineEditChanged)
+    self.connect(self.ui.liveKeywordLineEdit,
+                 QtCore.SIGNAL('textChanged(const QString &)'),
+                 self.liveKeywordLineEditChanged)
 
     # first data fetch
     self.nicopoll = NicoPoll(self.dicTableModel,
@@ -257,6 +281,18 @@ class MainWindow(QtGui.QMainWindow):
 
   def showLiveFilter(self):
     pass
+
+  def dicKeywordLineEditChanged(self):
+    regex = QtCore.QRegExp(self.ui.dicKeywordLineEdit.text(),
+                           QtCore.Qt.CaseInsensitive,
+                           QtCore.QRegExp.RegExp2)
+    self.dicFilterModel.setFilterRegExp(regex)
+
+  def liveKeywordLineEditChanged(self):
+    regex = QtCore.QRegExp(self.ui.liveKeywordLineEdit.text(),
+                           QtCore.Qt.CaseInsensitive,
+                           QtCore.QRegExp.RegExp2)
+    self.liveFilterModel.setFilterRegExp(regex)
 
   def liveTreeContextMenu(self, point):
     tree_index = self.liveTreeView.indexAt(point)
