@@ -150,6 +150,10 @@ class MainWindow(QtGui.QMainWindow):
     self.dicTableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.dicTableView.setColumnWidth(0, 80)
     self.dicTableView.setSortingEnabled(True)
+    self.dicTableView.setShowGrid(False)
+    self.dicTableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+    self.dicTableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    self.dicTableView.verticalHeader().hide()
 
     # liveTableView
     self.liveTableView = self.ui.liveTableView
@@ -158,6 +162,10 @@ class MainWindow(QtGui.QMainWindow):
     self.liveTableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.liveTableView.setColumnWidth(0, 80)
     self.liveTableView.setSortingEnabled(True)
+    self.liveTableView.setShowGrid(False)
+    self.liveTableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+    self.liveTableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    self.liveTableView.verticalHeader().hide()
 
     self.connect(self.liveTableView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
