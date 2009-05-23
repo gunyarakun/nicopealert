@@ -151,8 +151,7 @@ class MainWindow(QtGui.QMainWindow):
     self.dicTableView.setColumnWidth(0, 80)
     self.dicTableView.setSortingEnabled(True)
     self.dicTableView.setShowGrid(False)
-    self.dicTableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-    self.dicTableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    self.dicTableView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
     self.dicTableView.verticalHeader().hide()
 
     # liveTableView
@@ -163,8 +162,7 @@ class MainWindow(QtGui.QMainWindow):
     self.liveTableView.setColumnWidth(0, 80)
     self.liveTableView.setSortingEnabled(True)
     self.liveTableView.setShowGrid(False)
-    self.liveTableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-    self.liveTableView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+    self.dicTableView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
     self.liveTableView.verticalHeader().hide()
 
     self.connect(self.liveTableView,
