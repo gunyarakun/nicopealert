@@ -13,7 +13,8 @@
 # TODO: 生ごとの詳細表示
 # TODO: リファクタリング
 # TODO: ネットワーク無効実験
-# TODO: エラーハンドリング丁寧に、エラー報告ツール
+# TODO: コミュニティ削除
+# TODO: エラーハンドリング丁寧に、エラー報告ツール(ログとか)
 
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
@@ -315,6 +316,97 @@ class CommunityTableModel(QtCore.QAbstractTableModel):
         self.datas.append(row)
     finally:
       self.endInsertRows()
+
+class UserTabWidget(QtGui.QWidget):
+  icon = None
+
+  def __init__(self, mainWindow):
+    self.mainWindow = mainWindow
+    tabWidget = mainWindow.ui.tabWidget
+    QtGui.QWidget.__init__(self, tabWidget)
+
+    # TODO: クラスで共通化できる部品はないか？
+
+    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+    sizePolicy.setHorizontalStretch(0)
+    sizePolicy.setVerticalStretch(0)
+    sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+    # self.tabWidget.setObjectName("tabWidget")
+    self.setSizePolicy(sizePolicy)
+    # self.tab.setObjectName("tab")
+
+    # 各種レイアウト
+    gridLayout = QtGui.QGridLayout(self)
+    # self.gridLayout_2.setObjectName("gridLayout_2")
+    horizontalLayout = QtGui.QHBoxLayout()
+    # self.horizontalLayout.setObjectName("horizontalLayout")
+
+    # 検索キーワード用LineEditとLabel
+    label = QtGui.QLabel(self)
+    label.setText(QtGui.QApplication.translate('MainWindow',
+                                               '検索キーワード',
+                                               None,
+                                               QtGui.QApplication.UnicodeUTF8))
+    # self.label.setObjectName("label")
+    horizontalLayout.addWidget(label)
+    self.keywordLineEdit = QtGui.QLineEdit(self)
+    # self.dicKeywordLineEdit.setObjectName("dicKeywordLineEdit")
+    horizontalLayout.addWidget(self.keywordLineEdit)
+    label.setBuddy(self.keywordLineEdit)
+
+    # リスト(ウォッチリスト/コミュニティリスト)でのフィルタCheckBox
+    self.listFilterCheckBox = QtGui.QCheckBox(self)
+    # self.dicWatchlistCheckBox.setObjectName("dicWatchlistCheckBox")
+    horizontalLayout.addWidget(self.listFilterCheckBox)
+
+    # 横スペーサ
+    spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+    horizontalLayout.addItem(spacerItem)
+
+    # 指定した検索条件での新たなタブ追加ボタン
+    self.addTabPushButton = QtGui.QPushButton(self)
+    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+    sizePolicy.setHorizontalStretch(0)
+    sizePolicy.setVerticalStretch(0)
+    sizePolicy.setHeightForWidth(self.addTabPushButton.sizePolicy().hasHeightForWidth())
+    self.addTabPushButton.setSizePolicy(sizePolicy)
+    self.addTabPushButton.setMinimumSize(QtCore.QSize(0, 16))
+    self.addTabPushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+    # self.newTabPushButton.setObjectName("dicFilterPushButton")
+    horizontalLayout.addWidget(self.addTabPushButton)
+
+    gridLayout.addLayout(horizontalLayout, 5, 0, 1, 1)
+
+    # イベント表示用TreeView
+    self.treeView = QtGui.QTreeView(self)
+    # self.treeView.setObjectName("dicTreeView")
+    gridLayout.addWidget(self.treeView, 0, 0, 1, 1)
+
+    # 文字列とかアイコンとか
+    if self.icon is None:
+      self.icon = QtGui.QIcon()
+      self.icon.addPixmap(QtGui.QPixmap(self.ICON_FILE_NAME),
+                          QtGui.QIcon.Normal, QtGui.QIcon.Off)
+
+    tabWidget.addTab(self, self.icon, '')
+    tabWidget.setTabText(tabWidget.indexOf(self), self.trUtf8(self.TAB_TEXT))
+    tabWidget.setTabToolTip(tabWidget.indexOf(self), self.trUtf8(self.TAB_TOOL_TIP))
+    self.listFilterCheckBox.setText(self.trUtf8(self.LIST_FILTER_CHECKBOX_TEXT))
+    self.addTabPushButton.setText(self.trUtf8(self.ADD_TAB_PUSH_BUTTON_TEXT))
+
+class DicUserTabWidget(UserTabWidget):
+  ICON_FILE_NAME = 'dic.ico'
+  TAB_TEXT = '大百科'
+  TAB_TOOL_TIP = 'ニコニコ大百科のイベント一覧です。'
+  LIST_FILTER_CHECKBOX_TEXT = 'ウォッチリストで絞る'
+  ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
+
+class LiveUserTabWidget(UserTabWidget):
+  ICON_FILE_NAME = 'live.ico'
+  TAB_TEXT = '生放送'
+  TAB_TOOL_TIP = 'ニコニコ生放送のイベント一覧です。'
+  LIST_FILTER_CHECKBOX_TEXT = 'コミュニティリストで絞る'
+  ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
