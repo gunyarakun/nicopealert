@@ -34,6 +34,7 @@ class NicoDicTableModel(QtCore.QAbstractTableModel):
     QtCore.QAbstractTableModel.__init__(self, mainWindow)
     self.mainWindow = mainWindow
     self.datas = []
+    self.ids = []
 
   def rowCount(self, parent):
     return len(self.datas)
@@ -47,6 +48,9 @@ class NicoDicTableModel(QtCore.QAbstractTableModel):
     elif role != QtCore.Qt.DisplayRole:
       return QtCore.QVariant()
     return QtCore.QVariant(self.datas[index.row()][index.column()])
+
+  def dic_id(self, row_no):
+    self.ids[row_no]
 
   def headerData(self, col, orientation, role):
     if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -72,6 +76,7 @@ class NicoDicTableModel(QtCore.QAbstractTableModel):
           elif val is None:
             row.append(QtCore.QVariant())
         self.datas.append(row)
+        self.ids.append('%s%s' % (e['category'], e['title']))
     finally:
       self.endInsertRows()
 
@@ -97,6 +102,7 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
     QtCore.QAbstractTableModel.__init__(self, mainWindow)
     self.mainWindow = mainWindow
     self.datas = []
+    self.ids = []
 
   def rowCount(self, parent):
     return len(self.datas)
@@ -110,6 +116,9 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
     elif role != QtCore.Qt.DisplayRole:
       return QtCore.QVariant()
     return QtCore.QVariant(self.datas[index.row()][index.column()])
+
+  def live_id(self, row_no):
+    return self.ids[row_no]
 
   def headerData(self, col, orientation, role):
     if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -162,6 +171,7 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
           elif val is None:
             row.append(QtCore.QVariant())
         self.datas.append(row)
+        self.ids.append(d['live_id'])
       #self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
       #                                     QtCore.QString(d['title']))
     finally:
@@ -172,25 +182,43 @@ class DicFilterProxyModel(QtGui.QSortFilterProxyModel):
   def __init__(self, mainWindow):
     QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
     self.watchlist = mainWindow.watchlist
+    self.watchlistFilter = False
 
   def filterAcceptsRow(self, source_row, source_parent):
-    cond = False
-    for i in xrange(self.sourceModel().columnCount(None)):
-      idx = self.sourceModel().index(source_row, i, source_parent)
-      cond |= self.sourceModel().data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
-    return cond
+    dicTableModel = self.sourceModel()
+
+    cond = self.watchlistFilter and False in self.watchlist
+    for i in xrange(dicTableModel.columnCount(None)):
+      idx = dicTableModel.index(source_row, i, source_parent)
+      cond |= dicTableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
+
+    dic_id = dicTableModel.dic_id(source_row)
+    return cond and (not self.watchlistFilter or dic_id in self.watchlist)
+
+  def setWatchlistFilter(self, bool):
+    self.watchlistFilter = bool
+    self.invalidateFilter()
 
 class LiveFilterProxyModel(QtGui.QSortFilterProxyModel):
   def __init__(self, mainWindow):
     QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
     self.communities = mainWindow.communities
+    self.communityFilter = False
 
   def filterAcceptsRow(self, source_row, source_parent):
+    liveTableModel = self.sourceModel()
+
     cond = False
-    for i in xrange(self.sourceModel().columnCount(None)):
-      idx = self.sourceModel().index(source_row, i, source_parent)
-      cond |= self.sourceModel().data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
-    return cond
+    for i in xrange(liveTableModel.columnCount(None)):
+      idx = liveTableModel.index(source_row, i, source_parent)
+      cond |= liveTableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
+    
+    live_id = liveTableModel.live_id(source_row)
+    return cond and (not self.communityFilter or live_id in self.communities)
+
+  def setCommunityFilter(self, bool):
+    self.communityFilter = bool
+    self.invalidateFilter()
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
@@ -261,6 +289,12 @@ class MainWindow(QtGui.QMainWindow):
     self.connect(self.ui.liveKeywordLineEdit,
                  QtCore.SIGNAL('textChanged(const QString &)'),
                  self.liveKeywordLineEditChanged)
+    self.connect(self.ui.dicWatchlistCheckBox,
+                 QtCore.SIGNAL('toggled(bool)'),
+                 self.dicWatchlistCheckBoxToggled)
+    self.connect(self.ui.liveCommunityCheckBox,
+                 QtCore.SIGNAL('toggled(bool)'),
+                 self.liveWatchlistCheckBoxToggled)
 
     # first data fetch
     self.nicopoll = NicoPoll(self.dicTableModel,
@@ -294,11 +328,16 @@ class MainWindow(QtGui.QMainWindow):
                            QtCore.QRegExp.RegExp2)
     self.liveFilterModel.setFilterRegExp(regex)
 
+  def dicWatchlistCheckBoxToggled(self):
+    self.dicFilterModel.setWatchlistFilter(self.ui.dicWatchlistCheckBox.isChecked())
+
+  def liveWatchlistCheckBoxToggled(self):
+    self.liveFilterModel.setCommunityFilter(self.ui.liveCommunityCheckBox.isChecked())
+
   def liveTreeContextMenu(self, point):
     tree_index = self.liveTreeView.indexAt(point)
     live_index = self.liveFilterModel.index(tree_index.row(), 0)
     target_live_id = self.liveFilterModel.data(live_index).toString()
-    print u'%s' % target_live_id
     url = 'http://live.nicovideo.jp/watch/' + target_live_id
 
     popup_menu = QtGui.QMenu(self)

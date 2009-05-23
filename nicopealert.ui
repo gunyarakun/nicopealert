@@ -70,7 +70,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QCheckBox" name="dicWatchListCheckBox" >
+           <widget class="QCheckBox" name="dicWatchlistCheckBox" >
             <property name="text" >
              <string>ウォッチリスト限定</string>
             </property>
@@ -200,7 +200,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="addWatchListPushButton" >
+           <widget class="QPushButton" name="addWatchlistPushButton" >
             <property name="sizePolicy" >
              <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
@@ -221,7 +221,7 @@
          </layout>
         </item>
         <item row="0" column="0" >
-         <widget class="QTreeView" name="watchListTreeView" />
+         <widget class="QTreeView" name="watchlistTreeView" />
         </item>
        </layout>
       </widget>
