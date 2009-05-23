@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nicopealert.ui'
 #
-# Created: Sat May 23 10:48:43 2009
+# Created: Sat May 23 16:34:51 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -56,9 +56,9 @@ class Ui_MainWindow(object):
     self.dicFilterPushButton.setObjectName("dicFilterPushButton")
     self.horizontalLayout.addWidget(self.dicFilterPushButton)
     self.gridLayout_2.addLayout(self.horizontalLayout, 5, 0, 1, 1)
-    self.dicTableView = QtGui.QTableView(self.tab)
-    self.dicTableView.setObjectName("dicTableView")
-    self.gridLayout_2.addWidget(self.dicTableView, 0, 0, 1, 1)
+    self.dicTreeView = QtGui.QTreeView(self.tab)
+    self.dicTreeView.setObjectName("dicTreeView")
+    self.gridLayout_2.addWidget(self.dicTreeView, 0, 0, 1, 1)
     self.tabWidget.addTab(self.tab, icon, "")
     self.tab_2 = QtGui.QWidget()
     self.tab_2.setObjectName("tab_2")
@@ -87,9 +87,9 @@ class Ui_MainWindow(object):
     self.liveFilterPushButton.setObjectName("liveFilterPushButton")
     self.horizontalLayout_2.addWidget(self.liveFilterPushButton)
     self.gridLayout_3.addLayout(self.horizontalLayout_2, 5, 0, 1, 1)
-    self.liveTableView = QtGui.QTableView(self.tab_2)
-    self.liveTableView.setObjectName("liveTableView")
-    self.gridLayout_3.addWidget(self.liveTableView, 0, 0, 1, 1)
+    self.liveTreeView = QtGui.QTreeView(self.tab_2)
+    self.liveTreeView.setObjectName("liveTreeView")
+    self.gridLayout_3.addWidget(self.liveTreeView, 0, 0, 1, 1)
     icon1 = QtGui.QIcon()
     icon1.addPixmap(QtGui.QPixmap("live.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
     self.tabWidget.addTab(self.tab_2, icon1, "")
@@ -111,9 +111,9 @@ class Ui_MainWindow(object):
     self.addWatchListPushButton.setObjectName("addWatchListPushButton")
     self.horizontalLayout_3.addWidget(self.addWatchListPushButton)
     self.gridLayout_4.addLayout(self.horizontalLayout_3, 5, 0, 1, 1)
-    self.watchListTableView = QtGui.QTableView(self.tab_3)
-    self.watchListTableView.setObjectName("watchListTableView")
-    self.gridLayout_4.addWidget(self.watchListTableView, 0, 0, 1, 1)
+    self.watchListTreeView = QtGui.QTreeView(self.tab_3)
+    self.watchListTreeView.setObjectName("watchListTreeView")
+    self.gridLayout_4.addWidget(self.watchListTreeView, 0, 0, 1, 1)
     self.tabWidget.addTab(self.tab_3, icon, "")
     self.tab_4 = QtGui.QWidget()
     self.tab_4.setObjectName("tab_4")
@@ -133,9 +133,9 @@ class Ui_MainWindow(object):
     self.addCommunityPushButton.setObjectName("addCommunityPushButton")
     self.horizontalLayout_4.addWidget(self.addCommunityPushButton)
     self.gridLayout_5.addLayout(self.horizontalLayout_4, 5, 0, 1, 1)
-    self.communityTableView = QtGui.QTableView(self.tab_4)
-    self.communityTableView.setObjectName("communityTableView")
-    self.gridLayout_5.addWidget(self.communityTableView, 0, 0, 1, 1)
+    self.communityTreeView = QtGui.QTreeView(self.tab_4)
+    self.communityTreeView.setObjectName("communityTreeView")
+    self.gridLayout_5.addWidget(self.communityTreeView, 0, 0, 1, 1)
     self.tabWidget.addTab(self.tab_4, icon1, "")
     self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
     MainWindow.setCentralWidget(self.centralwidget)

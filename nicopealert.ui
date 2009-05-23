@@ -101,7 +101,7 @@
          </layout>
         </item>
         <item row="0" column="0" >
-         <widget class="QTableView" name="dicTableView" />
+         <widget class="QTreeView" name="dicTreeView" />
         </item>
        </layout>
       </widget>
@@ -171,7 +171,7 @@
          </layout>
         </item>
         <item row="0" column="0" >
-         <widget class="QTableView" name="liveTableView" />
+         <widget class="QTreeView" name="liveTreeView" />
         </item>
        </layout>
       </widget>
@@ -221,7 +221,7 @@
          </layout>
         </item>
         <item row="0" column="0" >
-         <widget class="QTableView" name="watchListTableView" />
+         <widget class="QTreeView" name="watchListTreeView" />
         </item>
        </layout>
       </widget>
@@ -271,7 +271,7 @@
          </layout>
         </item>
         <item row="0" column="0" >
-         <widget class="QTableView" name="communityTableView" />
+         <widget class="QTreeView" name="communityTreeView" />
         </item>
        </layout>
       </widget>

@@ -177,29 +177,25 @@ class MainWindow(QtGui.QMainWindow):
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
 
-    # dicTableView
-    self.dicTableView = self.ui.dicTableView
+    # dicTreeView
+    self.dicTreeView = self.ui.dicTreeView
     self.dicTableModel = NicoDicTableModel(self)
-    self.dicTableView.setModel(self.dicTableModel)
-    self.dicTableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    self.dicTableView.setColumnWidth(0, 80)
-    self.dicTableView.setSortingEnabled(True)
-    self.dicTableView.setShowGrid(False)
-    self.dicTableView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
-    self.dicTableView.verticalHeader().hide()
+    self.dicTreeView.setModel(self.dicTableModel)
+    self.dicTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.dicTreeView.setColumnWidth(0, 80)
+    self.dicTreeView.setSortingEnabled(True)
+    self.dicTreeView.setRootIsDecorated(False)
 
-    # liveTableView
-    self.liveTableView = self.ui.liveTableView
+    # liveTreeView
+    self.liveTreeView = self.ui.liveTreeView
     self.liveTableModel = NicoLiveTableModel(self)
-    self.liveTableView.setModel(self.liveTableModel)
-    self.liveTableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    self.liveTableView.setColumnWidth(0, 80)
-    self.liveTableView.setSortingEnabled(True)
-    self.liveTableView.setShowGrid(False)
-    self.liveTableView.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
-    self.liveTableView.verticalHeader().hide()
+    self.liveTreeView.setModel(self.liveTableModel)
+    self.liveTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.liveTreeView.setColumnWidth(0, 80)
+    self.liveTreeView.setSortingEnabled(True)
+    self.liveTreeView.setRootIsDecorated(False)
 
-    self.connect(self.liveTableView,
+    self.connect(self.liveTreeView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
                  self.liveTreeContextMenu)
 
@@ -241,7 +237,7 @@ class MainWindow(QtGui.QMainWindow):
     pass
 
   def liveTreeContextMenu(self, point):
-    tree_index = self.liveTableView.indexAt(point)
+    tree_index = self.liveTreeView.indexAt(point)
     target_live_id = self.liveTableModel.item(tree_index.row(), 0).text()
     url = 'http://live.nicovideo.jp/watch/' + target_live_id
 
@@ -251,7 +247,7 @@ class MainWindow(QtGui.QMainWindow):
     #popup_menu.addSeparator()
     #popup_menu.addAction(u'コミュニティを通知対象にする')
     #popup_menu.addAction(u'主を通知対象にする')
-    popup_menu.exec_(self.liveTableView.mapToGlobal(point))
+    popup_menu.exec_(self.liveTreeView.mapToGlobal(point))
 
 if __name__ == '__main__':
   import sys
