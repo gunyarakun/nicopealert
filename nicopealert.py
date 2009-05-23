@@ -167,6 +167,22 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
       self.endInsertRows()
       self.lock.release()
 
+class DicFilterProxyModel(QtGui.QSortFilterProxyModel):
+  def __init__(self, mainWindow):
+    QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
+    self.mainWindow = mainWindow
+
+  def filterAcceptsRow(self, source_row, source_parent):
+    return True
+
+class LiveFilterProxyModel(QtGui.QSortFilterProxyModel):
+  def __init__(self, mainWindow):
+    QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
+    self.mainWindow = mainWindow
+
+  def filterAcceptsRow(self, source_row, source_parent):
+    return True
+
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
 
@@ -180,20 +196,26 @@ class MainWindow(QtGui.QMainWindow):
     # dicTreeView
     self.dicTreeView = self.ui.dicTreeView
     self.dicTableModel = NicoDicTableModel(self)
-    self.dicTreeView.setModel(self.dicTableModel)
+    self.dicFilterModel = DicFilterProxyModel(self)
+    self.dicFilterModel.setSourceModel(self.dicTableModel)
+    self.dicTreeView.setModel(self.dicFilterModel)
     self.dicTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.dicTreeView.setColumnWidth(0, 80)
     self.dicTreeView.setSortingEnabled(True)
     self.dicTreeView.setRootIsDecorated(False)
+    self.dicTreeView.setAlternatingRowColors(True)
 
     # liveTreeView
     self.liveTreeView = self.ui.liveTreeView
     self.liveTableModel = NicoLiveTableModel(self)
-    self.liveTreeView.setModel(self.liveTableModel)
+    self.liveFilterModel = LiveFilterProxyModel(self)
+    self.liveFilterModel.setSourceModel(self.liveTableModel)
+    self.liveTreeView.setModel(self.liveFilterModel)
     self.liveTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
     self.liveTreeView.setColumnWidth(0, 80)
     self.liveTreeView.setSortingEnabled(True)
     self.liveTreeView.setRootIsDecorated(False)
+    self.liveTreeView.setAlternatingRowColors(True)
 
     self.connect(self.liveTreeView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
@@ -238,7 +260,9 @@ class MainWindow(QtGui.QMainWindow):
 
   def liveTreeContextMenu(self, point):
     tree_index = self.liveTreeView.indexAt(point)
-    target_live_id = self.liveTableModel.item(tree_index.row(), 0).text()
+    live_index = self.liveFilterModel.index(tree_index.row(), 0)
+    target_live_id = self.liveFilterModel.data(live_index).toString()
+    print u'%s' % target_live_id
     url = 'http://live.nicovideo.jp/watch/' + target_live_id
 
     popup_menu = QtGui.QMenu(self)
