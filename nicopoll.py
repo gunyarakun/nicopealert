@@ -33,12 +33,12 @@ class NicoPoll:
   # 大百科詳細情報
   dic_details = {}
 
-  def __init__(self, dicTreeViewModel, liveTreeViewModel):
+  def __init__(self, dicTableViewModel, liveTableViewModel):
     self.opener = urllib2.build_opener()
     self.fetch_thread = threading.Thread(target = self.fetch_live_detail_from_queue)
     self.fetch_thread.start()
-    self.dicTreeViewModel = dicTreeViewModel
-    self.liveTreeViewModel = liveTreeViewModel
+    self.dicTableViewModel = dicTableViewModel
+    self.liveTableViewModel = liveTableViewModel
     self.first = True
 
   # not thread safe
@@ -61,7 +61,7 @@ class NicoPoll:
     self.check_new_dic_events(events)
     current_lives = events['lives']
     try:
-      self.liveTreeViewModel.current_lives(current_lives)
+      self.liveTableViewModel.current_lives(current_lives)
     except:
       pass
 
@@ -97,13 +97,13 @@ class NicoPoll:
       key = u'%s/%s/%d' % (r[u'category'], r[u'title'], r[u'res_no'])
       fetched_events[key] = r
 
-    # 前回のと違うイベントだけをTreeViewに通知
+    # 前回のと違うイベントだけをTableViewに通知
     new_keys = set(fetched_events.keys()) - set(self.dic_details.keys())
     new_events = []
     for k in new_keys:
       new_events.append(fetched_events[k])
 
-    self.dicTreeViewModel.append_event(new_events)
+    self.dicTableViewModel.append_event(new_events)
     self.dic_details.update(fetched_events)
 
   def fetch_live_detail_from_queue(self):
@@ -128,7 +128,7 @@ class NicoPoll:
       detail[u'live_id'] = live_id
       detail[u'time'] = datetime.fromtimestamp(detail[u'time'])
     self.live_details.update(details)
-    self.liveTreeViewModel.live_handler(details.values())
+    self.liveTableViewModel.live_handler(details.values())
 
   def fetch_live_detail_from_live_id(self, live_id, opener):
     url = 'http://dic.nicovideo.jp:2525/%s.json.gz' % live_id.encode('ascii')

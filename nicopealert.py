@@ -18,21 +18,21 @@ import threading
 import webbrowser
 import re
 
-class NicoDicTreeViewModel(QtGui.QStandardItemModel):
+class NicoDicTableViewModel(QtGui.QStandardItemModel):
   COL_NAMES = [u'記事種別', u'記事名', u'コメント', u'時刻']
   COL_KEYS = [u'category', u'view_title', u'comment', u'time']
 
   RE_LF = re.compile(r'\r?\n')
 
-  def __init__(self, mainWindow, treeView):
+  def __init__(self, mainWindow, tableView):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
     self.mainWindow = mainWindow
-    self.treeView = treeView
+    self.tableView = tableView
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
 
   def append_event(self, events):
-    self.treeView.setUpdatesEnabled(False)
+    self.tableView.setUpdatesEnabled(False)
     try:
       for e in events:
         row = self.rowCount()
@@ -53,9 +53,9 @@ class NicoDicTreeViewModel(QtGui.QStandardItemModel):
           item.setEditable(False)
           self.setItem(row, i, item)
     finally:
-      self.treeView.setUpdatesEnabled(True)
+      self.tableView.setUpdatesEnabled(True)
 
-class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
+class NicoLiveTableViewModel(QtGui.QStandardItemModel):
 
   RE_LF = re.compile(r'\r?\n')
 
@@ -66,10 +66,10 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
 
   lock = threading.Lock()
 
-  def __init__(self, mainWindow, treeView):
+  def __init__(self, mainWindow, tableView):
     QtGui.QStandardItemModel.__init__(self, 0, len(self.COL_NAMES), mainWindow)
     self.mainWindow = mainWindow
-    self.treeView = treeView
+    self.tableView = tableView
     for i, c in enumerate(self.COL_NAMES):
       self.setHeaderData(i, QtCore.Qt.Horizontal, QtCore.QVariant(c))
 
@@ -78,7 +78,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
     # 1. 終わってしまった生放送を取り除く
     # 2. 放送中の生放送の視聴者数とコメント数を更新する
 
-    self.treeView.setUpdatesEnabled(False)
+    self.tableView.setUpdatesEnabled(False)
     self.lock.acquire()
     try:
       rows = self.rowCount()
@@ -104,7 +104,7 @@ class NicoLiveTreeViewModel(QtGui.QStandardItemModel):
       # TODO: 現在設定されているソート順で並べなおす
     finally:
       self.lock.release()
-      self.treeView.setUpdatesEnabled(True)
+      self.tableView.setUpdatesEnabled(True)
 
   def live_handler(self, details):
     self.lock.acquire()
@@ -143,23 +143,23 @@ class MainWindow(QtGui.QMainWindow):
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
 
-    # dicTreeView
-    self.dicTreeView = self.ui.dicTreeView
-    self.dicTreeViewModel = NicoDicTreeViewModel(self, self.dicTreeView)
-    self.dicTreeView.setModel(self.dicTreeViewModel)
-    self.dicTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    self.dicTreeView.setColumnWidth(0, 80)
-    self.dicTreeView.setSortingEnabled(True)
+    # dicTableView
+    self.dicTableView = self.ui.dicTableView
+    self.dicTableViewModel = NicoDicTableViewModel(self, self.dicTableView)
+    self.dicTableView.setModel(self.dicTableViewModel)
+    self.dicTableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.dicTableView.setColumnWidth(0, 80)
+    self.dicTableView.setSortingEnabled(True)
 
-    # liveTreeView
-    self.liveTreeView = self.ui.liveTreeView
-    self.liveTreeViewModel = NicoLiveTreeViewModel(self, self.liveTreeView)
-    self.liveTreeView.setModel(self.liveTreeViewModel)
-    self.liveTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    self.liveTreeView.setColumnWidth(0, 80)
-    self.liveTreeView.setSortingEnabled(True)
+    # liveTableView
+    self.liveTableView = self.ui.liveTableView
+    self.liveTableViewModel = NicoLiveTableViewModel(self, self.liveTableView)
+    self.liveTableView.setModel(self.liveTableViewModel)
+    self.liveTableView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.liveTableView.setColumnWidth(0, 80)
+    self.liveTableView.setSortingEnabled(True)
 
-    self.connect(self.liveTreeView,
+    self.connect(self.liveTableView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
                  self.liveTreeContextMenu)
 
@@ -181,8 +181,8 @@ class MainWindow(QtGui.QMainWindow):
                  self.showLiveFilter)
 
     # first data fetch
-    self.nicopoll = NicoPoll(self.dicTreeViewModel,
-                             self.liveTreeViewModel)
+    self.nicopoll = NicoPoll(self.dicTableViewModel,
+                             self.liveTableViewModel)
     self.nicopoll.fetch()
 
     # set timer for polling
@@ -201,8 +201,8 @@ class MainWindow(QtGui.QMainWindow):
     pass
 
   def liveTreeContextMenu(self, point):
-    tree_index = self.liveTreeView.indexAt(point)
-    target_live_id = self.liveTreeViewModel.item(tree_index.row(), 0).text()
+    tree_index = self.liveTableView.indexAt(point)
+    target_live_id = self.liveTableViewModel.item(tree_index.row(), 0).text()
     url = 'http://live.nicovideo.jp/watch/' + target_live_id
 
     popup_menu = QtGui.QMenu(self)
@@ -211,7 +211,7 @@ class MainWindow(QtGui.QMainWindow):
     #popup_menu.addSeparator()
     #popup_menu.addAction(u'コミュニティを通知対象にする')
     #popup_menu.addAction(u'主を通知対象にする')
-    popup_menu.exec_(self.liveTreeView.mapToGlobal(point))
+    popup_menu.exec_(self.liveTableView.mapToGlobal(point))
 
 if __name__ == '__main__':
   import sys
