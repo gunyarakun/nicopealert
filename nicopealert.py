@@ -4,8 +4,10 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: sort/filter
 # TODO: コミュ・ウォッチリスト登録
 # TODO: 上記登録のもののみ通知 & 自動立ち上げ？
+# TODO: カラム移動
 # TODO: 検索条件付与
 # TODO: コミュアイコン取得
 # TODO: 生ごとの詳細表示
@@ -51,8 +53,10 @@ class NicoDicTableModel(QtCore.QAbstractTableModel):
     return QtCore.QVariant()
 
   def append_event(self, events):
+    if len(events) == 0:
+      return
     rowcount = len(self.datas)
-    self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(events))
+    self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(events) - 1)
     try:
       for e in events:
         row = []
@@ -139,10 +143,12 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
       self.lock.release()
 
   def live_handler(self, details):
+    if len(details) == 0:
+      return
     self.lock.acquire()
     try:
       rowcount = len(self.datas)
-      self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(details))
+      self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(details) - 1)
       for d in details:
         row = []
         for key in self.COL_KEYS:
