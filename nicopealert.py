@@ -4,8 +4,6 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: コミュ・ウォッチリスト登録
-# TODO: コミュ・ウォッチリストの保存
 # TODO: コミュ・ウォッチリスト対象の背景色変更
 # TODO: 検索条件の追加・保存
 # TODO: なくなった生を削除する部分の復活。
@@ -213,7 +211,7 @@ class DicFilterProxyModel(QtGui.QSortFilterProxyModel):
 class LiveFilterProxyModel(QtGui.QSortFilterProxyModel):
   def __init__(self, mainWindow):
     QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
-    self.communities = mainWindow.communities
+    self.communityList = mainWindow.communityList
     self.communityFilter = False
 
   def filterAcceptsRow(self, source_row, source_parent):
@@ -225,7 +223,7 @@ class LiveFilterProxyModel(QtGui.QSortFilterProxyModel):
       cond |= liveTableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
     
     com_id = liveTableModel.com_id(source_row)
-    return cond and (not self.communityFilter or com_id in self.communities.keys())
+    return cond and (not self.communityFilter or com_id in self.communityList.keys())
 
   def setCommunityFilter(self, bool):
     self.communityFilter = bool
@@ -300,13 +298,13 @@ class CommunityTableModel(QtCore.QAbstractTableModel):
       return self.COL_NAMES[col]
     return QtCore.QVariant()
 
-  def addCommunities(self, communities):
-    if len(communities) == 0:
+  def addCommunityList(self, communityList):
+    if len(communityList) == 0:
       return
     rowcount = len(self.datas)
-    self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(communities) - 1)
+    self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(communityList) - 1)
     try:
-      for com_id, com_data in communities.items():
+      for com_id, com_data in communityList.items():
         row = [QtCore.QVariant(QtCore.QString(com_id)),
                QtCore.QVariant(QtCore.QString(com_data['name']))]
         self.datas.append(row)
@@ -315,6 +313,7 @@ class CommunityTableModel(QtCore.QAbstractTableModel):
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
+  SETTINGS_FILE_NAME = 'nicopealert.dat'
 
   def __init__(self, app):
     QtGui.QDialog.__init__(self)
@@ -325,13 +324,13 @@ class MainWindow(QtGui.QMainWindow):
 
     # load settings
     try:
-      f = file('nicopealert.dat', 'rb')
-      settings = pickle.load(f)
-      self.watchlist = settings['watchlist']
-      self.communities = settings['communities']
+      f = open(self.SETTINGS_FILE_NAME, 'rb')
+      self.settings = pickle.load(f)
     except:
-      self.watchlist = {}
-      self.communities = {}
+      self.settings = {'watchlist': {},
+                       'communityList': {}}
+    self.watchlist = self.settings['watchlist']
+    self.communityList = self.settings['communityList']
 
     # dicTreeView
     self.dicTreeView = self.ui.dicTreeView
@@ -376,6 +375,7 @@ class MainWindow(QtGui.QMainWindow):
     self.watchlistTreeView.setSortingEnabled(True)
     self.watchlistTreeView.setRootIsDecorated(False)
     self.watchlistTreeView.setAlternatingRowColors(True)
+    self.watchlistTableModel.addWatchlist(self.watchlist)
 
     # communityTreeView
     self.communityTreeView = self.ui.communityTreeView
@@ -386,6 +386,7 @@ class MainWindow(QtGui.QMainWindow):
     self.communityTreeView.setSortingEnabled(True)
     self.communityTreeView.setRootIsDecorated(False)
     self.communityTreeView.setAlternatingRowColors(True)
+    self.communityTableModel.addCommunityList(self.communityList)
 
     # trayIcon/trayIconMenu/trayIconImg
 
@@ -496,11 +497,20 @@ class MainWindow(QtGui.QMainWindow):
                'view_title': view_title}}
     self.watchlistTableModel.addWatchlist(i)
     self.watchlist.update(i)
+    self.saveSettings()
 
   def addCommunity(self, com_id, com_name):
     u = {com_id: {'name': com_name}}
-    self.communityTableModel.addCommunities(u)
-    self.communities.update(u)
+    self.communityTableModel.addCommunityList(u)
+    self.communityList.update(u)
+    self.saveSettings()
+
+  def saveSettings(self):
+    try:
+      f = open(self.SETTINGS_FILE_NAME, 'wb')
+      pickle.dump(self.settings, f)
+    except:
+      pass
 
 if __name__ == '__main__':
   import sys
