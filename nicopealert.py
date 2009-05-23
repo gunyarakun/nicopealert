@@ -102,7 +102,7 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
     QtCore.QAbstractTableModel.__init__(self, mainWindow)
     self.mainWindow = mainWindow
     self.datas = []
-    self.ids = []
+    self.com_ids = []
 
   def rowCount(self, parent):
     return len(self.datas)
@@ -117,8 +117,8 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
       return QtCore.QVariant()
     return QtCore.QVariant(self.datas[index.row()][index.column()])
 
-  def live_id(self, row_no):
-    return self.ids[row_no]
+  def com_id(self, row_no):
+    return self.com_ids[row_no]
 
   def headerData(self, col, orientation, role):
     if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -171,7 +171,7 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
           elif val is None:
             row.append(QtCore.QVariant())
         self.datas.append(row)
-        self.ids.append(d['live_id'])
+        self.com_ids.append(d['com_id'])
       #self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
       #                                     QtCore.QString(d['title']))
     finally:
@@ -213,8 +213,8 @@ class LiveFilterProxyModel(QtGui.QSortFilterProxyModel):
       idx = liveTableModel.index(source_row, i, source_parent)
       cond |= liveTableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
     
-    live_id = liveTableModel.live_id(source_row)
-    return cond and (not self.communityFilter or live_id in self.communities)
+    com_id = liveTableModel.com_id(source_row)
+    return cond and (not self.communityFilter or com_id in self.communities)
 
   def setCommunityFilter(self, bool):
     self.communityFilter = bool
@@ -338,15 +338,20 @@ class MainWindow(QtGui.QMainWindow):
     tree_index = self.liveTreeView.indexAt(point)
     live_index = self.liveFilterModel.index(tree_index.row(), 0)
     target_live_id = self.liveFilterModel.data(live_index).toString()
+
+    com_id = self.liveTableModel.com_id(tree_index.row())
     url = 'http://live.nicovideo.jp/watch/' + target_live_id
 
     popup_menu = QtGui.QMenu(self)
     popup_menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
     popup_menu.addAction(u'URLをコピー', lambda: self.app.clipboard().setText(QtCore.QString(url)))
-    #popup_menu.addSeparator()
-    #popup_menu.addAction(u'コミュニティを通知対象にする')
+    popup_menu.addSeparator()
+    popup_menu.addAction(u'コミュニティを通知対象にする', lambda: self.addCommunity(com_id))
     #popup_menu.addAction(u'主を通知対象にする')
     popup_menu.exec_(self.liveTreeView.mapToGlobal(point))
+
+  def addCommunity(self, com_id):
+    self.communities.append(com_id)
 
 if __name__ == '__main__':
   import sys
