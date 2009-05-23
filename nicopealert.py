@@ -103,6 +103,7 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
     self.mainWindow = mainWindow
     self.datas = []
     self.com_ids = []
+    self.com_names = []
 
   def rowCount(self, parent):
     return len(self.datas)
@@ -119,6 +120,9 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
 
   def com_id(self, row_no):
     return self.com_ids[row_no]
+
+  def com_name(self, row_no):
+    return self.com_names[row_no]
 
   def headerData(self, col, orientation, role):
     if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -162,16 +166,21 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
       for d in details:
         row = []
         for key in self.COL_KEYS:
-          val = d[key]
-          if isinstance(val, basestring):
-            str = self.RE_LF.sub('', val)
-            row.append(QtCore.QVariant(QtCore.QString(str)))
-          elif isinstance(val, int) or isinstance(val, datetime):
-            row.append(QtCore.QVariant(val))
-          elif val is None:
+          if d.has_key(key):
+            val = d[key]
+            if isinstance(val, basestring):
+              str = self.RE_LF.sub('', val)
+              row.append(QtCore.QVariant(QtCore.QString(str)))
+            elif isinstance(val, int) or isinstance(val, datetime):
+              row.append(QtCore.QVariant(val))
+            elif val is None:
+              row.append(QtCore.QVariant())
+          else:
             row.append(QtCore.QVariant())
         self.datas.append(row)
         self.com_ids.append(d['com_id'])
+        self.com_names.append(d['com_name'])
+      #self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
       #self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
       #                                     QtCore.QString(d['title']))
     finally:
@@ -193,7 +202,7 @@ class DicFilterProxyModel(QtGui.QSortFilterProxyModel):
       cond |= dicTableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
 
     dic_id = dicTableModel.dic_id(source_row)
-    return cond and (not self.watchlistFilter or dic_id in self.watchlist)
+    return cond and (not self.watchlistFilter or dic_id in self.watchlist.keys())
 
   def setWatchlistFilter(self, bool):
     self.watchlistFilter = bool
@@ -214,11 +223,51 @@ class LiveFilterProxyModel(QtGui.QSortFilterProxyModel):
       cond |= liveTableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
     
     com_id = liveTableModel.com_id(source_row)
-    return cond and (not self.communityFilter or com_id in self.communities)
+    return cond and (not self.communityFilter or com_id in self.communities.keys())
 
   def setCommunityFilter(self, bool):
     self.communityFilter = bool
     self.invalidateFilter()
+
+class CommunityTableModel(QtCore.QAbstractTableModel):
+  COL_NAMES = [QtCore.QVariant(u'コミュID'),
+               QtCore.QVariant(u'コミュ名')]
+
+  def __init__(self, mainWindow):
+    QtCore.QAbstractTableModel.__init__(self, mainWindow)
+    self.mainWindow = mainWindow
+    self.datas = []
+
+  def rowCount(self, parent):
+    return len(self.datas)
+
+  def columnCount(self, parent):
+    return len(self.COL_NAMES)
+
+  def data(self, index, role):
+    if not index.isValid():
+      return QtCore.QVariant()
+    elif role != QtCore.Qt.DisplayRole:
+      return QtCore.QVariant()
+    return QtCore.QVariant(self.datas[index.row()][index.column()])
+
+  def headerData(self, col, orientation, role):
+    if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+      return self.COL_NAMES[col]
+    return QtCore.QVariant()
+
+  def addCommunities(self, communities):
+    if len(communities) == 0:
+      return
+    rowcount = len(self.datas)
+    self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(communities) - 1)
+    try:
+      for com_id, com_data in communities.items():
+        row = [QtCore.QVariant(QtCore.QString(com_id)),
+               QtCore.QVariant(QtCore.QString(com_data['name']))]
+        self.datas.append(row)
+    finally:
+      self.endInsertRows()
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
@@ -237,8 +286,8 @@ class MainWindow(QtGui.QMainWindow):
       self.watchlist = settings['watchlist']
       self.communities = settings['communities']
     except:
-      self.watchlist = []
-      self.communities = []
+      self.watchlist = {}
+      self.communities = {}
 
     # dicTreeView
     self.dicTreeView = self.ui.dicTreeView
@@ -267,6 +316,26 @@ class MainWindow(QtGui.QMainWindow):
     self.connect(self.liveTreeView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
                  self.liveTreeContextMenu)
+
+    # watchlistTreeView
+    self.watchlistTreeView = self.ui.watchlistTreeView
+    self.watchlistTableModel = CommunityTableModel(self) # FIXME:
+    self.watchlistTreeView.setModel(self.watchlistTableModel)
+    self.watchlistTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.watchlistTreeView.setColumnWidth(0, 80)
+    self.watchlistTreeView.setSortingEnabled(True)
+    self.watchlistTreeView.setRootIsDecorated(False)
+    self.watchlistTreeView.setAlternatingRowColors(True)
+
+    # communityTreeView
+    self.communityTreeView = self.ui.communityTreeView
+    self.communityTableModel = CommunityTableModel(self)
+    self.communityTreeView.setModel(self.communityTableModel)
+    self.communityTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.communityTreeView.setColumnWidth(0, 80)
+    self.communityTreeView.setSortingEnabled(True)
+    self.communityTreeView.setRootIsDecorated(False)
+    self.communityTreeView.setAlternatingRowColors(True)
 
     # trayIcon/trayIconMenu/trayIconImg
 
@@ -339,19 +408,23 @@ class MainWindow(QtGui.QMainWindow):
     live_index = self.liveFilterModel.index(tree_index.row(), 0)
     target_live_id = self.liveFilterModel.data(live_index).toString()
 
-    com_id = self.liveTableModel.com_id(tree_index.row())
+    model_index = self.liveFilterModel.mapToSource(live_index)
+    com_id = self.liveTableModel.com_id(model_index.row())
+    com_name = self.liveTableModel.com_name(model_index.row())
     url = 'http://live.nicovideo.jp/watch/' + target_live_id
 
     popup_menu = QtGui.QMenu(self)
     popup_menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
     popup_menu.addAction(u'URLをコピー', lambda: self.app.clipboard().setText(QtCore.QString(url)))
     popup_menu.addSeparator()
-    popup_menu.addAction(u'コミュニティを通知対象にする', lambda: self.addCommunity(com_id))
+    popup_menu.addAction(u'コミュニティを通知対象にする', lambda: self.addCommunity(com_id, com_name))
     #popup_menu.addAction(u'主を通知対象にする')
     popup_menu.exec_(self.liveTreeView.mapToGlobal(point))
 
-  def addCommunity(self, com_id):
-    self.communities.append(com_id)
+  def addCommunity(self, com_id, com_name):
+    u = {com_id: {'name': com_name}}
+    self.communityTableModel.addCommunities(u)
+    self.communities.update(u)
 
 if __name__ == '__main__':
   import sys
