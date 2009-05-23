@@ -47,6 +47,16 @@
         <item row="5" column="0" >
          <layout class="QHBoxLayout" name="horizontalLayout" >
           <item>
+           <widget class="QLabel" name="label" >
+            <property name="text" >
+             <string>検索キーワード</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="dicKeywordLineEdit" />
+          </item>
+          <item>
            <spacer name="horizontalSpacer" >
             <property name="orientation" >
              <enum>Qt::Horizontal</enum>
@@ -58,6 +68,13 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="dicWatchListCheckBox" >
+            <property name="text" >
+             <string>ウォッチリスト限定</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="dicFilterPushButton" >
@@ -77,7 +94,7 @@
              <enum>Qt::LeftToRight</enum>
             </property>
             <property name="text" >
-             <string>フィルタする</string>
+             <string>この条件を保存</string>
             </property>
            </widget>
           </item>
@@ -92,12 +109,26 @@
        <attribute name="title" >
         <string>生放送</string>
        </attribute>
+       <attribute name="icon" >
+        <iconset>
+         <normaloff>live.ico</normaloff>live.ico</iconset>
+       </attribute>
        <attribute name="toolTip" >
         <string>ニコニコ生放送の放送一覧です。</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3" >
         <item row="5" column="0" >
          <layout class="QHBoxLayout" name="horizontalLayout_2" >
+          <item>
+           <widget class="QLabel" name="label_2" >
+            <property name="text" >
+             <string>検索キーワード</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="liveKeywordLineEdit" />
+          </item>
           <item>
            <spacer>
             <property name="orientation" >
@@ -110,6 +141,13 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="liveCommunityCheckBox" >
+            <property name="text" >
+             <string>対象コミュニティ限定</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="liveFilterPushButton" >
@@ -126,7 +164,7 @@
              </size>
             </property>
             <property name="text" >
-             <string>フィルタする</string>
+             <string>この条件を保存</string>
             </property>
            </widget>
           </item>
@@ -189,7 +227,11 @@
       </widget>
       <widget class="QWidget" name="tab_4" >
        <attribute name="title" >
-        <string>コミュニティ</string>
+        <string>対象コミュニティ</string>
+       </attribute>
+       <attribute name="icon" >
+        <iconset>
+         <normaloff>live.ico</normaloff>live.ico</iconset>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_5" >
         <item row="5" column="0" >
