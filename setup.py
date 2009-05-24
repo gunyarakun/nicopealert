@@ -31,6 +31,8 @@ setup(name = 'nicopealert',
                        'gzip',
                        'encodings.utf_8',
                        'encodings.ascii'],
+          'include_files': [('dic.ico', 'dic.ico'),
+                            ('live.ico', 'live.ico')],
         },
         'bdist_wininst': {
           'title': 'nicopealert',
