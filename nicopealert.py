@@ -4,19 +4,19 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: 検索条件の追加・保存
+# TODO: 検索条件の保存
+# TODO: ウォッチリスト/コミュニティ削除
+# TODO: カラムサイズ初期値設定
+# TODO: カラム移動・サイズの記憶
 # TODO: 4つのTableModelの共通化
 # TODO: watchlist/communitylistタブもUserTabに変更(TableModel共通化後)
 # TODO: watchlistの表記
-# TODO: カラムサイズ初期値設定
 # TODO: コミュ・ウォッチリスト対象の背景色変更
 # TODO: timer_handlerのスレッド化。詰まることがあるかもしれないので。
 # TODO: なくなった生を削除する部分の復活。
-# TODO: カラム移動・サイズの記憶
 # TODO: 生ごとの詳細表示
 # TODO: リファクタリング
 # TODO: ネットワーク無効実験
-# TODO: コミュニティ削除
 # TODO: エラーハンドリング丁寧に、エラー報告ツール(ログとか)
 
 from PyQt4 import QtCore, QtGui
@@ -318,7 +318,7 @@ class CommunityTableModel(QtCore.QAbstractTableModel):
 class UserTabWidget(QtGui.QWidget):
   icon = None
 
-  def __init__(self, mainWindow):
+  def __init__(self, mainWindow, tabText):
     self.mainWindow = mainWindow
     tabWidget = mainWindow.ui.tabWidget
     QtGui.QWidget.__init__(self, tabWidget)
@@ -390,7 +390,7 @@ class UserTabWidget(QtGui.QWidget):
                           QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
     tabWidget.addTab(self, self.icon, '')
-    tabWidget.setTabText(tabWidget.indexOf(self), self.trUtf8(self.TAB_TEXT))
+    tabWidget.setTabText(tabWidget.indexOf(self), self.trUtf8(tabText))
     tabWidget.setTabToolTip(tabWidget.indexOf(self), self.trUtf8(self.TAB_TOOL_TIP))
     self.listFilterCheckBox.setText(self.trUtf8(self.LIST_FILTER_CHECKBOX_TEXT))
     self.addTabPushButton.setText(self.trUtf8(self.ADD_TAB_PUSH_BUTTON_TEXT))
@@ -406,8 +406,16 @@ class UserTabWidget(QtGui.QWidget):
     popup_menu.exec_(self.treeView.mapToGlobal(point))
 
   def addTab(self):
-    # TODO: 現在の条件で新しいタブを作る。
-    pass
+    # 現在の条件で新しいタブを作る。
+    keyword = self.keywordLineEdit.text()
+    check = self.listFilterCheckBox.isChecked()
+    if check:
+      tabText = '※' + keyword
+    else:
+      tabText = keyword
+    newtab = self.createTab(tabText)
+    newtab.keywordLineEdit.setText(self.keywordLineEdit.text())
+    newtab.listFilterCheckBox.setChecked(self.listFilterCheckBox.isChecked())
 
   def keywordLineEditChanged(self):
     # 検索キーワードの切り替え
@@ -422,15 +430,14 @@ class UserTabWidget(QtGui.QWidget):
 
 class DicUserTabWidget(UserTabWidget):
   ICON_FILE_NAME = 'dic.ico'
-  TAB_TEXT = '大百科'
   TAB_TOOL_TIP = 'ニコニコ大百科のイベント一覧です。'
   LIST_FILTER_CHECKBOX_TEXT = 'ウォッチリストで絞る'
   ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
 
-  def __init__(self, mainWindow):
+  def __init__(self, mainWindow, tabText = '大百科'):
     self.tableModel = mainWindow.dicTableModel
     self.filterModel = mainWindow.dicFilterModel
-    UserTabWidget.__init__(self, mainWindow)
+    UserTabWidget.__init__(self, mainWindow, tabText)
 
     self.treeView.setModel(self.filterModel)
     self.treeView.hideColumn(self.tableModel.COL_TITLE_INDEX) # 表示用じゃない記事名は隠す。
@@ -446,6 +453,9 @@ class DicUserTabWidget(UserTabWidget):
     menu.addSeparator()
     menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.addWatchlist(cat, title, view_title))
 
+  def createTab(self, tabText):
+    return DicUserTabWidget(self.mainWindow, tabText)
+
 class LiveUserTabWidget(UserTabWidget):
   ICON_FILE_NAME = 'live.ico'
   TAB_TEXT = '生放送'
@@ -453,10 +463,10 @@ class LiveUserTabWidget(UserTabWidget):
   LIST_FILTER_CHECKBOX_TEXT = 'コミュニティリストで絞る'
   ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
 
-  def __init__(self, mainWindow):
+  def __init__(self, mainWindow, tabText = '生放送'):
     self.tableModel = mainWindow.liveTableModel
     self.filterModel = mainWindow.liveFilterModel
-    UserTabWidget.__init__(self, mainWindow)
+    UserTabWidget.__init__(self, mainWindow, tabText)
 
     self.treeView.setModel(self.filterModel)
     self.treeView.hideColumn(self.tableModel.COL_COM_ID_INDEX) # 表示用じゃない記事名は隠す。
@@ -477,6 +487,9 @@ class LiveUserTabWidget(UserTabWidget):
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
     menu.addAction(u'コミュニティを通知対象にする', lambda: self.mainWindow.addCommunity(com_id, com_name))
+
+  def createTab(self, tabText):
+    return LiveUserTabWidget(self.mainWindow, tabText)
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
