@@ -123,7 +123,7 @@ class UserTabWidget(QtGui.QWidget):
     if check:
       tabText = '※' + keyword
     else:
-      tabText = keyword
+      tabText = keyword.toUtf8()
     newtab = self.createTab(tabText)
     newtab.keywordLineEdit.setText(self.keywordLineEdit.text())
     newtab.listFilterCheckBox.setChecked(self.listFilterCheckBox.isChecked())
