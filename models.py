@@ -140,3 +140,7 @@ class CommunityTableModel(TableModel):
   COL_NAMES = [QtCore.QVariant(u'コミュID'),
                QtCore.QVariant(u'コミュ名')]
   COL_KEYS = [u'id', u'name']
+
+  COL_COM_ID_INDEX = 0
+  COL_COM_NAME_INDEX = 0
+

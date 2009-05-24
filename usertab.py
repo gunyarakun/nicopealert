@@ -339,17 +339,15 @@ class WatchListUserTabWidget(UserTabWidget):
     self.treeView.setModel(self.filterModel)
 
   def addContextMenuAction(self, menu, table_index):
-    # FIXME: implement!!!!!
-    row = self.tableModel.raw_row_data(table_index.row())
-    live_id = unicode(row[self.tableModel.COL_LIVE_ID_INDEX].toString())
-    com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
-    com_name = unicode(row[self.tableModel.COL_COM_NAME_INDEX].toString())
-    url = 'http://live.nicovideo.jp/watch/' + live_id
+    cat, title, view_title = \
+      map(lambda d: unicode(d.toString()),
+          self.tableModel.raw_row_data(table_index.row())[0:3])
+    url = 'http://dic.nicovideo.jp/%s/%s' % (cat, urllib.quote(title.encode('utf-8')))
 
     menu.addAction(u'ページを見る', lambda: webbrowser.open(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
-    menu.addAction(u'削除する', lambda: self.mainWindow.addCommunity(com_id, com_name))
+    menu.addAction(u'削除する', lambda: self.mainWindow.removeWatchList(cat, title))
 
 class CommunityListUserTabWidget(UserTabWidget):
   EVENT_TAB = False
@@ -369,14 +367,12 @@ class CommunityListUserTabWidget(UserTabWidget):
     self.treeView.setModel(self.filterModel)
 
   def addContextMenuAction(self, menu, table_index):
-    # FIXME: implement!!!!!
     row = self.tableModel.raw_row_data(table_index.row())
-    live_id = unicode(row[self.tableModel.COL_LIVE_ID_INDEX].toString())
     com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
     com_name = unicode(row[self.tableModel.COL_COM_NAME_INDEX].toString())
-    url = 'http://live.nicovideo.jp/watch/' + live_id
+    url = 'http://ch.nicovideo.jp/community/' + com_id
 
     menu.addAction(u'ページを見る', lambda: webbrowser.open(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
-    menu.addAction(u'削除する', lambda: self.mainWindow.addCommunity(com_id, com_name))
+    menu.addAction(u'削除する', lambda: self.mainWindow.removeCommunityList(com_id))
