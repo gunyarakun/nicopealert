@@ -8,8 +8,13 @@ import urllib
 class UserTabWidget(QtGui.QWidget):
   icon = None
 
-  def __init__(self, mainWindow, removable):
+  ADD_TAB_PUSH_BUTTON_TEXT = 'この条件で新規タブ作成'
+  REMOVE_COND_PUSH_BUTTON_TEXT = 'この条件をクリア'
+  REMOVE_TAB_PUSH_BUTTON_TEXT = 'このタブを削除'
+
+  def __init__(self, mainWindow, initial):
     self.mainWindow = mainWindow
+    self.initial = initial
     tabWidget = mainWindow.ui.tabWidget
     self.tabWidget = tabWidget
     QtGui.QWidget.__init__(self, tabWidget)
@@ -60,7 +65,7 @@ class UserTabWidget(QtGui.QWidget):
                  self.addTab)
     horizontalLayout.addWidget(self.addTabPushButton)
 
-    # リストアイテムもしくはタブ削除ボタン
+    # リストアイテムもしくはタブもしくは条件削除ボタン
     self.removePushButton = QtGui.QPushButton(self)
     sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
     sizePolicy.setHorizontalStretch(0)
@@ -72,10 +77,6 @@ class UserTabWidget(QtGui.QWidget):
     self.connect(self.removePushButton, QtCore.SIGNAL('clicked()'),
                  self.removeTabOrItem)
     horizontalLayout.addWidget(self.removePushButton)
-
-    # 初期タブかどうか
-    if not removable:
-      self.removePushButton.setEnabled(False)
 
     #
     gridLayout.addLayout(horizontalLayout, 5, 0, 1, 1)
@@ -102,7 +103,10 @@ class UserTabWidget(QtGui.QWidget):
     tabWidget.setTabToolTip(tabWidget.indexOf(self), self.trUtf8(self.TAB_TOOL_TIP))
     self.listFilterCheckBox.setText(self.trUtf8(self.LIST_FILTER_CHECKBOX_TEXT))
     self.addTabPushButton.setText(self.trUtf8(self.ADD_TAB_PUSH_BUTTON_TEXT))
-    self.removePushButton.setText(self.trUtf8(self.REMOVE_PUSH_BUTTON_TEXT))
+    if initial:
+      self.removePushButton.setText(self.trUtf8(self.REMOVE_COND_PUSH_BUTTON_TEXT))
+    else:
+      self.removePushButton.setText(self.trUtf8(self.REMOVE_TAB_PUSH_BUTTON_TEXT))
 
     # 追加ボタンの状態を更新
     self.updateAddButton()
@@ -118,17 +122,28 @@ class UserTabWidget(QtGui.QWidget):
     popup_menu.exec_(self.treeView.mapToGlobal(point))
 
   def addTab(self):
-    # 現在の条件で新しいタブを作る。
+    # 現在の条件で新しいタブを作り、そこにフォーカスをうつす。
     keyword = self.keywordLineEdit.text()
     check = self.listFilterCheckBox.isChecked()
     newtab = self.createTab()
     newtab.keywordLineEdit.setText(keyword)
     newtab.listFilterCheckBox.setChecked(check)
+    self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(newtab))
+    self.clearCond()
+
+  def clearCond(self):
+    self.keywordLineEdit.setText('')
+    self.listFilterCheckBox.setChecked(False)
 
   def removeTabOrItem(self):
     if self.EVENT_TAB:
-      # 大百科/ニコ生タブ: タブ削除
-     self.tabWidget.removeTab(self.tabWidget.indexOf(self))
+      # 大百科/ニコ生タブ
+      if self.initial:
+        # 初期タブ: 条件クリア
+        self.clearCond()
+      else:
+        # 追加タブ: タブ削除
+        self.tabWidget.removeTab(self.tabWidget.indexOf(self))
     else:
       # ウォッチリスト/コミュニティリスト: 選択アイテム削除
       pass
@@ -150,8 +165,11 @@ class UserTabWidget(QtGui.QWidget):
     keyword = self.keywordLineEdit.text()
 
     self.addTabPushButton.setEnabled(
-      not keyword.isEmpty() or
-       self.listFilterCheckBox.isChecked())
+      self.initial and (
+        not keyword.isEmpty() or
+        self.listFilterCheckBox.isChecked()
+      )
+    )
 
     if keyword.isEmpty():
       keyword = self.DEFAULT_TAB_TEXT
@@ -171,13 +189,11 @@ class DicUserTabWidget(UserTabWidget):
   DEFAULT_TAB_TEXT = '大百科'
   TAB_TOOL_TIP = 'ニコニコ大百科のイベント一覧です。'
   LIST_FILTER_CHECKBOX_TEXT = 'ウォッチリストで絞る'
-  ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
-  REMOVE_PUSH_BUTTON_TEXT = 'このタブを削除'
 
-  def __init__(self, mainWindow, removable = False):
+  def __init__(self, mainWindow, initial = True):
     self.tableModel = mainWindow.dicTableModel
     self.filterModel = mainWindow.dicFilterModel
-    UserTabWidget.__init__(self, mainWindow, removable)
+    UserTabWidget.__init__(self, mainWindow, initial)
 
     self.treeView.setModel(self.filterModel)
     self.treeView.hideColumn(self.tableModel.COL_TITLE_INDEX) # 表示用じゃない記事名は隠す。
@@ -194,7 +210,7 @@ class DicUserTabWidget(UserTabWidget):
     menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.addWatchlist(cat, title, view_title))
 
   def createTab(self):
-    return DicUserTabWidget(self.mainWindow, True)
+    return DicUserTabWidget(self.mainWindow, False)
 
 class LiveUserTabWidget(UserTabWidget):
   EVENT_TAB = True
@@ -202,13 +218,11 @@ class LiveUserTabWidget(UserTabWidget):
   DEFAULT_TAB_TEXT = '生放送'
   TAB_TOOL_TIP = 'ニコニコ生放送のイベント一覧です。'
   LIST_FILTER_CHECKBOX_TEXT = 'コミュニティリストで絞る'
-  ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
-  REMOVE_PUSH_BUTTON_TEXT = 'このタブを削除'
 
-  def __init__(self, mainWindow, removable = False):
+  def __init__(self, mainWindow, initial = True):
     self.tableModel = mainWindow.liveTableModel
     self.filterModel = mainWindow.liveFilterModel
-    UserTabWidget.__init__(self, mainWindow, removable)
+    UserTabWidget.__init__(self, mainWindow, initial)
 
     self.treeView.setModel(self.filterModel)
     self.treeView.hideColumn(self.tableModel.COL_COM_ID_INDEX) # 表示用じゃない記事名は隠す。
@@ -231,6 +245,4 @@ class LiveUserTabWidget(UserTabWidget):
     menu.addAction(u'コミュニティを通知対象にする', lambda: self.mainWindow.addCommunity(com_id, com_name))
 
   def createTab(self):
-    return LiveUserTabWidget(self.mainWindow, True)
-
-
+    return LiveUserTabWidget(self.mainWindow, False)
