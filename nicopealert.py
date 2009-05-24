@@ -4,14 +4,11 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: 通知
-
 # TODO: 検索条件の保存
 # TODO: カラム移動・サイズの記憶
 # TODO: 新着イベントでタブ色変更
 # TODO: 複数起動防止
 # TODO: コミュ・ウォッチリスト対象の背景色変更
-# TODO: アイコンお掃除
 # TODO: timer_handlerのスレッド化。詰まることがあるかもしれないので。
 # TODO: ネットワーク無効実験
 # TODO: 生ごとの詳細表示
@@ -156,6 +153,10 @@ if __name__ == '__main__':
   import codecs # for debug
 
   app = QtGui.QApplication(sys.argv)
-  mw = MainWindow(app)
-  mw.show()
-  sys.exit(app.exec_())
+  try:
+    mw = MainWindow(app)
+    mw.show()
+    ret = app.exec_()
+  finally:
+    mw.trayIcon.hide()
+  sys.exit(ret)
