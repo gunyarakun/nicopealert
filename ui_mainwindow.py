@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nicopealert.ui'
 #
-# Created: Sat May 23 21:08:35 2009
+# Created: Sun May 24 12:17:45 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -42,9 +42,9 @@ class Ui_MainWindow(object):
     self.horizontalLayout.addWidget(self.dicKeywordLineEdit)
     spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
     self.horizontalLayout.addItem(spacerItem)
-    self.dicWatchlistCheckBox = QtGui.QCheckBox(self.tab)
-    self.dicWatchlistCheckBox.setObjectName("dicWatchlistCheckBox")
-    self.horizontalLayout.addWidget(self.dicWatchlistCheckBox)
+    self.dicWatchListCheckBox = QtGui.QCheckBox(self.tab)
+    self.dicWatchListCheckBox.setObjectName("dicWatchListCheckBox")
+    self.horizontalLayout.addWidget(self.dicWatchListCheckBox)
     self.dicFilterPushButton = QtGui.QPushButton(self.tab)
     sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
     sizePolicy.setHorizontalStretch(0)
@@ -101,19 +101,19 @@ class Ui_MainWindow(object):
     self.horizontalLayout_3.setObjectName("horizontalLayout_3")
     spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
     self.horizontalLayout_3.addItem(spacerItem2)
-    self.addWatchlistPushButton = QtGui.QPushButton(self.tab_3)
+    self.addWatchListPushButton = QtGui.QPushButton(self.tab_3)
     sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
     sizePolicy.setHorizontalStretch(0)
     sizePolicy.setVerticalStretch(0)
-    sizePolicy.setHeightForWidth(self.addWatchlistPushButton.sizePolicy().hasHeightForWidth())
-    self.addWatchlistPushButton.setSizePolicy(sizePolicy)
-    self.addWatchlistPushButton.setMinimumSize(QtCore.QSize(0, 16))
-    self.addWatchlistPushButton.setObjectName("addWatchlistPushButton")
-    self.horizontalLayout_3.addWidget(self.addWatchlistPushButton)
+    sizePolicy.setHeightForWidth(self.addWatchListPushButton.sizePolicy().hasHeightForWidth())
+    self.addWatchListPushButton.setSizePolicy(sizePolicy)
+    self.addWatchListPushButton.setMinimumSize(QtCore.QSize(0, 16))
+    self.addWatchListPushButton.setObjectName("addWatchListPushButton")
+    self.horizontalLayout_3.addWidget(self.addWatchListPushButton)
     self.gridLayout_4.addLayout(self.horizontalLayout_3, 5, 0, 1, 1)
-    self.watchlistTreeView = QtGui.QTreeView(self.tab_3)
-    self.watchlistTreeView.setObjectName("watchlistTreeView")
-    self.gridLayout_4.addWidget(self.watchlistTreeView, 0, 0, 1, 1)
+    self.watchListTreeView = QtGui.QTreeView(self.tab_3)
+    self.watchListTreeView.setObjectName("watchListTreeView")
+    self.gridLayout_4.addWidget(self.watchListTreeView, 0, 0, 1, 1)
     self.tabWidget.addTab(self.tab_3, icon, "")
     self.tab_4 = QtGui.QWidget()
     self.tab_4.setObjectName("tab_4")
@@ -157,7 +157,7 @@ class Ui_MainWindow(object):
   def retranslateUi(self, MainWindow):
     MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "ニコ百アラート", None, QtGui.QApplication.UnicodeUTF8))
     self.label.setText(QtGui.QApplication.translate("MainWindow", "検索キーワード", None, QtGui.QApplication.UnicodeUTF8))
-    self.dicWatchlistCheckBox.setText(QtGui.QApplication.translate("MainWindow", "ウォッチリスト限定", None, QtGui.QApplication.UnicodeUTF8))
+    self.dicWatchListCheckBox.setText(QtGui.QApplication.translate("MainWindow", "ウォッチリスト限定", None, QtGui.QApplication.UnicodeUTF8))
     self.dicFilterPushButton.setText(QtGui.QApplication.translate("MainWindow", "この条件を保存", None, QtGui.QApplication.UnicodeUTF8))
     self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("MainWindow", "大百科", None, QtGui.QApplication.UnicodeUTF8))
     self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("MainWindow", "ニコニコ大百科のイベント一覧です。", None, QtGui.QApplication.UnicodeUTF8))
@@ -166,7 +166,7 @@ class Ui_MainWindow(object):
     self.liveFilterPushButton.setText(QtGui.QApplication.translate("MainWindow", "この条件を保存", None, QtGui.QApplication.UnicodeUTF8))
     self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "生放送", None, QtGui.QApplication.UnicodeUTF8))
     self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "ニコニコ生放送の放送一覧です。", None, QtGui.QApplication.UnicodeUTF8))
-    self.addWatchlistPushButton.setText(QtGui.QApplication.translate("MainWindow", "ウォッチリストを追加する", None, QtGui.QApplication.UnicodeUTF8))
+    self.addWatchListPushButton.setText(QtGui.QApplication.translate("MainWindow", "ウォッチリストを追加する", None, QtGui.QApplication.UnicodeUTF8))
     self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QtGui.QApplication.translate("MainWindow", "ウォッチリスト", None, QtGui.QApplication.UnicodeUTF8))
     self.addCommunityPushButton.setText(QtGui.QApplication.translate("MainWindow", "コミュニティを追加", None, QtGui.QApplication.UnicodeUTF8))
     self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QtGui.QApplication.translate("MainWindow", "対象コミュニティ", None, QtGui.QApplication.UnicodeUTF8))

@@ -28,12 +28,12 @@ class FilterListProxyModel(QtGui.QSortFilterProxyModel):
 class DicFilterProxyModel(FilterListProxyModel):
   def __init__(self, mainWindow):
     FilterListProxyModel.__init__(self, mainWindow)
-    self.list = mainWindow.watchlist
+    self.list = mainWindow.settings['watchList']
 
 class LiveFilterProxyModel(FilterListProxyModel):
   def __init__(self, mainWindow):
     FilterListProxyModel.__init__(self, mainWindow)
-    self.list = mainWindow.communityList
+    self.list = mainWindow.settings['communityList']
 
 class UserTabWidget(QtGui.QWidget):
   icon = None
@@ -238,7 +238,7 @@ class DicUserTabWidget(UserTabWidget):
     menu.addAction(u'記事/掲示板を見る', lambda: webbrowser.open(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
-    menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.addWatchlist(cat, title, view_title))
+    menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.addWatchList(cat, title, view_title))
 
   def createTab(self):
     return DicUserTabWidget(self.mainWindow, False)

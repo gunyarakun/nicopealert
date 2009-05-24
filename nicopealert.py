@@ -10,7 +10,7 @@
 # TODO: カラムサイズ初期値設定
 # TODO: カラム移動・サイズの記憶
 # TODO: 4つのTableModelの共通化
-# TODO: watchlistの表記
+# TODO: watchListの表記
 # TODO: コミュ・ウォッチリスト対象の背景色変更
 # TODO: timer_handlerのスレッド化。詰まることがあるかもしれないので。
 # TODO: なくなった生を削除する部分の復活。
@@ -203,7 +203,7 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
       self.endInsertRows()
       self.lock.release()
 
-class WatchlistTableModel(QtCore.QAbstractTableModel):
+class watchListTableModel(QtCore.QAbstractTableModel):
   COL_NAMES = [QtCore.QVariant(u'カテゴリ'),
                QtCore.QVariant(u'記事名'),
                QtCore.QVariant(u'表示用記事名')]
@@ -231,7 +231,7 @@ class WatchlistTableModel(QtCore.QAbstractTableModel):
       return self.COL_NAMES[col]
     return QtCore.QVariant()
 
-  def addWatchlist(self, articles):
+  def addWatchList(self, articles):
     if len(articles) == 0:
       return
     rowcount = len(self.datas)
@@ -300,25 +300,25 @@ class MainWindow(QtGui.QMainWindow):
     try:
       f = open(self.SETTINGS_FILE_NAME, 'rb')
       self.settings = pickle.load(f)
+      self['watchList']
+      self['communityList']
     except:
-      self.settings = {'watchlist': {},
+      self.settings = {'watchList': {},
                        'communityList': {}}
-    self.watchlist = self.settings['watchlist']
-    self.communityList = self.settings['communityList']
 
     self.dicTableModel = NicoDicTableModel(self)
     self.liveTableModel = NicoLiveTableModel(self)
 
-    # watchlistTreeView
-    self.watchlistTreeView = self.ui.watchlistTreeView
-    self.watchlistTableModel = WatchlistTableModel(self)
-    self.watchlistTreeView.setModel(self.watchlistTableModel)
-    self.watchlistTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    self.watchlistTreeView.setColumnWidth(0, 80)
-    self.watchlistTreeView.setSortingEnabled(True)
-    self.watchlistTreeView.setRootIsDecorated(False)
-    self.watchlistTreeView.setAlternatingRowColors(True)
-    self.watchlistTableModel.addWatchlist(self.watchlist)
+    # watchListTreeView
+    self.watchListTreeView = self.ui.watchListTreeView
+    self.watchListTableModel = watchListTableModel(self)
+    self.watchListTreeView.setModel(self.watchListTableModel)
+    self.watchListTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+    self.watchListTreeView.setColumnWidth(0, 80)
+    self.watchListTreeView.setSortingEnabled(True)
+    self.watchListTreeView.setRootIsDecorated(False)
+    self.watchListTreeView.setAlternatingRowColors(True)
+    self.watchListTableModel.addWatchList(self.settings['watchList'])
 
     # communityTreeView
     self.communityTreeView = self.ui.communityTreeView
@@ -329,7 +329,7 @@ class MainWindow(QtGui.QMainWindow):
     self.communityTreeView.setSortingEnabled(True)
     self.communityTreeView.setRootIsDecorated(False)
     self.communityTreeView.setAlternatingRowColors(True)
-    self.communityTableModel.addCommunityList(self.communityList)
+    self.communityTableModel.addCommunityList(self.settings['communityList'])
 
     # new user tab widget !!!
     DicUserTabWidget(self)
@@ -359,19 +359,19 @@ class MainWindow(QtGui.QMainWindow):
   def timer_handler(self):
     self.nicopoll.fetch()
 
-  def addWatchlist(self, category, title, view_title):
+  def addWatchList(self, category, title, view_title):
     key = '%s%s' % (category, title)
     i = {key: {'category': category,
                'title': title,
                'view_title': view_title}}
-    self.watchlistTableModel.addWatchlist(i)
-    self.watchlist.update(i)
+    self.watchListTableModel.addWatchList(i)
+    self.settings['watchList'].update(i)
     self.saveSettings()
 
   def addCommunity(self, com_id, com_name):
     u = {com_id: {'name': com_name}}
     self.communityTableModel.addCommunityList(u)
-    self.communityList.update(u)
+    self.settings['communityList'].update(u)
     self.saveSettings()
 
   def saveSettings(self):
