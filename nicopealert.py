@@ -4,10 +4,10 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: なくなった生を削除する部分の復活。
+# TODO: カラムサイズ初期値設定
+# TODO: 通知
 
 # TODO: 検索条件の保存
-# TODO: カラムサイズ初期値設定
 # TODO: カラム移動・サイズの記憶
 # TODO: 新着イベントでタブ色変更
 # TODO: 複数起動防止
@@ -16,8 +16,8 @@
 # TODO: timer_handlerのスレッド化。詰まることがあるかもしれないので。
 # TODO: ネットワーク無効実験
 # TODO: 生ごとの詳細表示
-# TODO: リファクタリング
 # TODO: エラーハンドリング丁寧に、エラー報告ツール(ログとか)
+# TODO: リファクタリング
 
 import os # for os.rename
 import cPickle as pickle

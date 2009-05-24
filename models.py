@@ -126,10 +126,11 @@ class NicoLiveTableModel(TableModel):
     # 1. 終わってしまった生放送を取り除く
     # 2. 放送中の生放送の視聴者数とコメント数を更新する
 
+    remove_rows = []
     self.lock.acquire()
     try:
-      for row in xrange(0, self.datas):
-        live_id = unicode(self.item(row, 0).text())
+      for row in xrange(0, len(self.datas)):
+        live_id = unicode(self.datas[row][self.COL_LIVE_ID_INDEX].toString())
 
         if lives.has_key(live_id):
           # print 'live %s count to be freshed' % live_id
@@ -139,10 +140,20 @@ class NicoLiveTableModel(TableModel):
             lives[live_id]['comment_count'])
         else:
           # print 'live %s is deleted...' % (live_id)
-          remove_list.append(live_id)
+          remove_rows.append(row)
       st_index = self.index(0, self.COL_WATCHER_INDEX)
       ed_index = self.index(len(self.datas), self.COL_COMMENT_INDEX)
-      self.dataChanged(st_index, ed_index)
+      self.emit(QtCore.SIGNAL('dataChanged(const QModelIndex &, const QModelIndex &)'),
+                st_index, ed_index)
+
+      # 削除、rowがソートされていると仮定している
+      for i, row in enumerate(remove_rows):
+        crow = row - i # 削除によるインデックスズレを修正
+        self.beginRemoveRows(QtCore.QModelIndex(), crow, crow)
+        try:
+          del self.datas[crow]
+        finally:
+          self.endRemoveRows()
     finally:
       self.lock.release()
 

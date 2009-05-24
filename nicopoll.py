@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# ニコ生クラス
+# TODO: 再キューを行ったカウントを取得し、ある回数を超えたら再キューをやめる
 
 import re
 import urllib2
@@ -59,10 +59,7 @@ class NicoPoll:
 
     self.check_new_dic_events(events)
     current_lives = events['lives']
-    try:
-      self.liveTableModel.current_lives(current_lives)
-    except:
-      pass
+    self.liveTableModel.current_lives(current_lives)
 
     if first:
       self.add_live_details(current_lives)
