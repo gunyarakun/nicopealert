@@ -59,17 +59,17 @@ class UserTabWidget(QtGui.QWidget):
 
     # 各種レイアウト
     gridLayout = QtGui.QGridLayout(self)
-    # self.gridLayout_2.setObjectName("gridLayout_2")
     horizontalLayout = QtGui.QHBoxLayout()
 
+    # 検索キーワード/リスト追加用LineEditとLabel
+    label = QtGui.QLabel(self)
+    horizontalLayout.addWidget(label)
+    self.keywordLineEdit = QtGui.QLineEdit(self)
+    label.setBuddy(self.keywordLineEdit)
+    horizontalLayout.addWidget(self.keywordLineEdit)
+
     if self.EVENT_TAB:
-      # 検索キーワード用LineEditとLabel
-      label = QtGui.QLabel(self)
       label.setText(self.trUtf8('検索キーワード'))
-      horizontalLayout.addWidget(label)
-      self.keywordLineEdit = QtGui.QLineEdit(self)
-      horizontalLayout.addWidget(self.keywordLineEdit)
-      label.setBuddy(self.keywordLineEdit)
       self.connect(self.keywordLineEdit,
                    QtCore.SIGNAL('textChanged(const QString &)'),
                    self.keywordLineEditChanged)
@@ -81,6 +81,8 @@ class UserTabWidget(QtGui.QWidget):
                    QtCore.SIGNAL('toggled(bool)'),
                    self.listFilterCheckBoxToggled)
       horizontalLayout.addWidget(self.listFilterCheckBox)
+    else:
+      label.setText(self.trUtf8(self.LINE_EDIT_LABEL))
 
     # 横スペーサ
     spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -185,7 +187,9 @@ class UserTabWidget(QtGui.QWidget):
         self.tabWidget.removeTab(self.tabWidget.indexOf(self))
     else:
       # ウォッチリスト/コミュニティリスト: 選択アイテム削除
-      pass
+      for idx in self.treeView.selectedIndexes():
+        self.filterModel.removeRows(idx.row(), 1)
+      # TODO: モデル側で、削除したものをsettingsから消す。
 
   def keywordLineEditChanged(self):
     # 検索キーワードの切り替え
@@ -292,6 +296,7 @@ class WatchListUserTabWidget(UserTabWidget):
   ICON_FILE_NAME = 'dic.ico'
   DEFAULT_TAB_TEXT = 'ウォッチリスト'
   TAB_TOOL_TIP = 'イベントを知りたい大百科の記事一覧です。'
+  LINE_EDIT_LABEL = '追加したい記事のURL'
   ADD_ITEM_PUSH_BUTTON_TEXT = 'ウォッチリスト追加'
   REMOVE_ITEM_PUSH_BUTTON_TEXT = 'ウォッチリスト削除'
 
@@ -321,6 +326,7 @@ class CommunityListUserTabWidget(UserTabWidget):
   ICON_FILE_NAME = 'live.ico'
   DEFAULT_TAB_TEXT = 'コミュリスト'
   TAB_TOOL_TIP = 'イベントを知りたいコミュニティの一覧です。'
+  LINE_EDIT_LABEL = '追加したいコミュニティ(空白区切り)'
   ADD_ITEM_PUSH_BUTTON_TEXT = 'コミュ追加'
   REMOVE_ITEM_PUSH_BUTTON_TEXT = 'コミュ削除'
 
