@@ -183,6 +183,9 @@ class UserTabWidget(QtGui.QWidget):
     # 追加ボタンの状態を更新
     self.updateAddButton()
 
+    # ダイナミックソートを有効に
+    self.filterModel.setDynamicSortFilter(True)
+
   def handleContextMenu(self, point):
     tree_index = self.treeView.indexAt(point)
     filterModel_index = self.filterModel.index(tree_index.row(), 0)
