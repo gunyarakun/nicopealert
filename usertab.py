@@ -22,7 +22,6 @@ class FilterListProxyModel(QtGui.QSortFilterProxyModel):
       cond |= tableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
 
     filter_id = tableModel.filter_id(source_row)
-    
     return cond and (not self.listFilter or filter_id in self.list.keys())
 
   def setListFilter(self, bool):

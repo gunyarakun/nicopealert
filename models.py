@@ -6,14 +6,23 @@ import threading
 from datetime import datetime
 from PyQt4 import QtCore, QtGui
 
+# for notify
+import urllib
+import webbrowser
+
 class TableModel(QtCore.QAbstractTableModel):
   RE_LF = re.compile(r'\r?\n')
+
+  NOTIFY_TRAY = 0
+  NOTIFY_SOUND = 1
+  NOTIFY_BROWSER = 2
 
   def __init__(self, mainWindow):
     QtCore.QAbstractTableModel.__init__(self, mainWindow)
     self.mainWindow = mainWindow
     self.datas = [] # データの配列
     self.lock = threading.Lock()
+    self.notify = [False, False, False]
 
   def rowCount(self, parent):
     return len(self.datas)
@@ -59,6 +68,7 @@ class TableModel(QtCore.QAbstractTableModel):
     if len(items) == 0:
       return
     self.lock.acquire()
+    to_notify = []
     try:
       rowcount = len(self.datas)
       self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(items) - 1)
@@ -77,10 +87,31 @@ class TableModel(QtCore.QAbstractTableModel):
             elif val is None:
               row.append(QtCore.QVariant())
           self.datas.append(row)
+          to_notify.append(row)
       finally:
         self.endInsertRows()
     finally:
       self.lock.release()
+    self.doNotify(to_notify)
+
+  # 各種通知がON/OFFであるというお知らせがくる。
+  def setNotify(self, type, bool):
+    self.notify[type] = bool
+
+  def doNotify(self, notify_list):
+    # TODO: すべてのFilterを通して、１つでもOKだったもの一覧を作る。
+    if self.notify[self.NOTIFY_TRAY]:
+      self.notifyTray(notify_list)
+    if self.notify[self.NOTIFY_SOUND]:
+      QtGui.QSound.play('event.wav')
+    if self.notify[self.NOTIFY_BROWSER]:
+      self.notifyBrowser(notify_list)
+
+  def notifyTray(self, notify_list):
+    pass
+
+  def notifyBrowser(self, notify_list):
+    pass
 
 class NicoDicTableModel(TableModel):
   COL_NAMES = [QtCore.QVariant(u'記事種別'),
@@ -97,7 +128,17 @@ class NicoDicTableModel(TableModel):
     # categoryとtitleをくっつけたもの
     r = self.datas[row_no]
     return u'/%s/%s' % (r[self.COL_CATEGORY_INDEX].toString(),
-                      r[self.COL_TITLE_INDEX].toString())
+                        r[self.COL_TITLE_INDEX].toString())
+
+  def notifyTray(self, notify_list):
+    vtitles = '\n'.join([unicode(x[2].toString()) for x in notify_list])
+    self.mainWindow.trayIcon.showMessage(self.trUtf8('新着大百科'), vtitles)
+
+  def notifyBrowser(self, notify_list):
+    map(webbrowser.open,
+        ['http://dic.nicovideo.jp/%s/%s' % 
+          (n[self.COL_CATEGORY_INDEX].toString(),
+           n[self.COL_TITLE_INDEX].toString()) for n in notify_list])
 
 class NicoLiveTableModel(TableModel):
   COL_NAMES = [QtCore.QVariant(u'ID'),
@@ -112,6 +153,7 @@ class NicoLiveTableModel(TableModel):
   COL_KEYS = [u'live_id', u'title', u'com_id', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'time']
 
   COL_LIVE_ID_INDEX = 0
+  COL_TITLE_INDEX = 1
   COL_COM_ID_INDEX = 2
   COL_COM_NAME_INDEX = 3
   COL_WATCHER_INDEX = 5
@@ -120,6 +162,16 @@ class NicoLiveTableModel(TableModel):
   def filter_id(self, row_no):
     # com_idでフィルタリングする
     return unicode(self.datas[row_no][self.COL_COM_ID_INDEX].toString())
+
+  def notifyTray(self, notify_list):
+    vtitles = '\n'.join([unicode(x[self.COL_TITLE_INDEX].toString())
+                         for x in notify_list])
+    self.mainWindow.trayIcon.showMessage(self.trUtf8('新着生放送'), vtitles)
+
+  def notifyBrowser(self, notify_list):
+    map(webbrowser.open,
+        ['http://live.nicovideo.jp/watch/%s' % n[self.COL_LIVE_ID_INDEX].toString()
+         for n in notify_list])
 
   def current_lives(self, lives):
     # 現在の生放送一覧から、

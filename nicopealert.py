@@ -4,7 +4,6 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: カラムサイズ初期値設定
 # TODO: 通知
 
 # TODO: 検索条件の保存
@@ -55,8 +54,6 @@ class MainWindow(QtGui.QMainWindow):
     self.liveTableModel = NicoLiveTableModel(self)
     self.watchListTableModel = WatchListTableModel(self)
     self.communityListTableModel = CommunityTableModel(self)
-    self.watchListTableModel.appendItems(self.settings['watchList'])
-    self.communityListTableModel.appendItems(self.settings['communityList'])
 
     # tab widget
     self.tabWidget = QtGui.QTabWidget(self.ui.centralwidget)
@@ -92,11 +89,15 @@ class MainWindow(QtGui.QMainWindow):
 
   def show(self):
     QtGui.QMainWindow.show(self)
+
+    # タブの見た目関係初期化
     for i in xrange(0, self.tabWidget.count()):
       w = self.tabWidget.widget(i)
       w.init_after_show()
 
-    print 'ababa'
+    # データ挿入
+    self.watchListTableModel.appendItems(self.settings['watchList'])
+    self.communityListTableModel.appendItems(self.settings['communityList'])
 
   def timer_handler(self):
     self.nicopoll.fetch()
