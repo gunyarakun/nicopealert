@@ -61,7 +61,6 @@ class MainWindow(QtGui.QMainWindow):
     # tab widget
     self.tabWidget = QtGui.QTabWidget(self.ui.centralwidget)
     self.tabWidget.setLayoutDirection(QtCore.Qt.LeftToRight)
-    self.tabWidget.setCurrentIndex(0)
     self.ui.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
     # initial tabs
@@ -69,6 +68,7 @@ class MainWindow(QtGui.QMainWindow):
     LiveUserTabWidget(self)
     WatchListUserTabWidget(self)
     CommunityListUserTabWidget(self)
+    self.tabWidget.setCurrentIndex(0)
 
     # trayIcon/trayIconMenu/trayIconImg
     self.trayIconImg = QtGui.QIcon(self.tr('dic.ico'))
@@ -89,6 +89,14 @@ class MainWindow(QtGui.QMainWindow):
     self.connect(self.timer, QtCore.SIGNAL('timeout()'), self.timer_handler)
     self.timer.setInterval(self.POLLING_DURATION)
     self.timer.start()
+
+  def show(self):
+    QtGui.QMainWindow.show(self)
+    for i in xrange(0, self.tabWidget.count()):
+      w = self.tabWidget.widget(i)
+      w.init_after_show()
+
+    print 'ababa'
 
   def timer_handler(self):
     self.nicopoll.fetch()

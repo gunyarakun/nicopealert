@@ -186,6 +186,12 @@ class UserTabWidget(QtGui.QWidget):
     # ダイナミックソートを有効に
     self.filterModel.setDynamicSortFilter(True)
 
+  def init_after_show(self):
+    # Qtの制限？で、Tab内のWidgetで最初のタブ以外のものについては
+    # カラムの削除やリサイズができない。
+    # showのあとなら出来るっぽい？ので
+    pass
+
   def handleContextMenu(self, point):
     tree_index = self.treeView.indexAt(point)
     filterModel_index = self.filterModel.index(tree_index.row(), 0)
@@ -285,7 +291,19 @@ class DicUserTabWidget(UserTabWidget):
     UserTabWidget.__init__(self, mainWindow, initial)
 
     self.treeView.setModel(self.filterModel)
-    self.treeView.hideColumn(self.tableModel.COL_TITLE_INDEX) # 表示用じゃない記事名は隠す。
+
+  def init_after_show(self):
+    # TODO: refactoring
+    self.treeView.hideColumn(self.tableModel.COL_TITLE_INDEX)
+    header = self.treeView.header()
+    header.setStretchLastSection(False)
+    self.treeView.setColumnWidth(0, 30)
+    self.treeView.setColumnWidth(2, 150)
+    self.treeView.setColumnWidth(4, 110)
+    header.setResizeMode(0, QtGui.QHeaderView.Fixed)
+    header.setResizeMode(2, QtGui.QHeaderView.Interactive)
+    header.setResizeMode(3, QtGui.QHeaderView.Stretch)
+    header.setResizeMode(4, QtGui.QHeaderView.Fixed)
 
   def addContextMenuAction(self, menu, table_index):
     cat, title, view_title = \
@@ -315,7 +333,27 @@ class LiveUserTabWidget(UserTabWidget):
     UserTabWidget.__init__(self, mainWindow, initial)
 
     self.treeView.setModel(self.filterModel)
-    self.treeView.hideColumn(self.tableModel.COL_COM_ID_INDEX) # 表示用じゃない記事名は隠す。
+
+  def init_after_show(self):
+    self.treeView.hideColumn(self.tableModel.COL_LIVE_ID_INDEX)
+    self.treeView.hideColumn(self.tableModel.COL_COM_ID_INDEX)
+    # TODO: refactoring
+    header = self.treeView.header()
+    header.setStretchLastSection(False)
+    self.treeView.setColumnWidth(1, 300)
+    self.treeView.setColumnWidth(3, 120)
+    self.treeView.setColumnWidth(4, 60)
+    self.treeView.setColumnWidth(5, 40)
+    self.treeView.setColumnWidth(6, 40)
+    self.treeView.setColumnWidth(7, 70)
+    self.treeView.setColumnWidth(8, 110)
+    header.setResizeMode(1, QtGui.QHeaderView.Stretch)
+    header.setResizeMode(3, QtGui.QHeaderView.Interactive)
+    header.setResizeMode(4, QtGui.QHeaderView.Interactive)
+    header.setResizeMode(5, QtGui.QHeaderView.Fixed)
+    header.setResizeMode(6, QtGui.QHeaderView.Fixed)
+    header.setResizeMode(7, QtGui.QHeaderView.Interactive)
+    header.setResizeMode(8, QtGui.QHeaderView.Fixed)
 
   def addContextMenuAction(self, menu, table_index):
     row = self.tableModel.raw_row_data(table_index.row())
