@@ -161,7 +161,6 @@ class UserTabWidget(QtGui.QWidget):
     # イベント表示用TreeView
     self.treeView = QtGui.QTreeView(self)
     self.treeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    self.treeView.setColumnWidth(0, 80)
     self.treeView.setSortingEnabled(True)
     self.treeView.setRootIsDecorated(False)
     self.treeView.setAlternatingRowColors(True)
@@ -211,6 +210,7 @@ class UserTabWidget(QtGui.QWidget):
       newtab.listFilterCheckBox.setChecked(check)
       self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(newtab))
       self.clearCond()
+      newtab.init_after_show()
     else:
       # リストの要素を追加する
       for i in unicode(keyword).split():
@@ -293,12 +293,12 @@ class DicUserTabWidget(UserTabWidget):
 
   def init_after_show(self):
     # TODO: refactoring
-    self.treeView.hideColumn(self.tableModel.COL_TITLE_INDEX)
     header = self.treeView.header()
+    header.setSectionHidden(self.tableModel.COL_TITLE_INDEX, True)
     header.setStretchLastSection(False)
-    self.treeView.setColumnWidth(0, 30)
-    self.treeView.setColumnWidth(2, 150)
-    self.treeView.setColumnWidth(4, 110)
+    header.resizeSection(0, 30)
+    header.resizeSection(2, 150)
+    header.resizeSection(4, 110)
     header.setResizeMode(0, QtGui.QHeaderView.Fixed)
     header.setResizeMode(2, QtGui.QHeaderView.Interactive)
     header.setResizeMode(3, QtGui.QHeaderView.Stretch)
@@ -334,20 +334,20 @@ class LiveUserTabWidget(UserTabWidget):
     self.treeView.setModel(self.filterModel)
 
   def init_after_show(self):
-    self.treeView.hideColumn(self.tableModel.COL_LIVE_ID_INDEX)
-    self.treeView.hideColumn(self.tableModel.COL_COM_ID_INDEX)
     # TODO: refactoring
     header = self.treeView.header()
     header.setStretchLastSection(False)
-    self.treeView.setColumnWidth(1, 300)
-    self.treeView.setColumnWidth(3, 120)
-    self.treeView.setColumnWidth(4, 60)
-    self.treeView.setColumnWidth(5, 40)
-    self.treeView.setColumnWidth(6, 40)
-    self.treeView.setColumnWidth(7, 70)
-    self.treeView.setColumnWidth(8, 110)
+    header.setSectionHidden(self.tableModel.COL_LIVE_ID_INDEX, True)
+    header.setSectionHidden(self.tableModel.COL_COM_ID_INDEX, True)
+    header.resizeSection(1, 200)
+    header.resizeSection(3, 120)
+    header.resizeSection(4, 60)
+    header.resizeSection(5, 40)
+    header.resizeSection(6, 40)
+    header.resizeSection(7, 70)
+    header.resizeSection(8, 110)
     header.setResizeMode(1, QtGui.QHeaderView.Stretch)
-    header.setResizeMode(3, QtGui.QHeaderView.Interactive)
+    header.setResizeMode(3, QtGui.QHeaderView.Stretch)
     header.setResizeMode(4, QtGui.QHeaderView.Interactive)
     header.setResizeMode(5, QtGui.QHeaderView.Fixed)
     header.setResizeMode(6, QtGui.QHeaderView.Fixed)
