@@ -8,7 +8,7 @@ import urllib
 class UserTabWidget(QtGui.QWidget):
   icon = None
 
-  def __init__(self, mainWindow, tabText, removable):
+  def __init__(self, mainWindow, removable):
     self.mainWindow = mainWindow
     tabWidget = mainWindow.ui.tabWidget
     self.tabWidget = tabWidget
@@ -75,7 +75,6 @@ class UserTabWidget(QtGui.QWidget):
 
     # 初期タブかどうか
     if not removable:
-      self.addTabPushButton.setEnabled(False)
       self.removePushButton.setEnabled(False)
 
     #
@@ -100,11 +99,13 @@ class UserTabWidget(QtGui.QWidget):
                           QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
     tabWidget.addTab(self, self.icon, '')
-    tabWidget.setTabText(tabWidget.indexOf(self), self.trUtf8(tabText))
     tabWidget.setTabToolTip(tabWidget.indexOf(self), self.trUtf8(self.TAB_TOOL_TIP))
     self.listFilterCheckBox.setText(self.trUtf8(self.LIST_FILTER_CHECKBOX_TEXT))
     self.addTabPushButton.setText(self.trUtf8(self.ADD_TAB_PUSH_BUTTON_TEXT))
     self.removePushButton.setText(self.trUtf8(self.REMOVE_PUSH_BUTTON_TEXT))
+
+    # 追加ボタンの状態を更新
+    self.updateAddButton()
 
   def handleContextMenu(self, point):
     tree_index = self.treeView.indexAt(point)
@@ -120,13 +121,9 @@ class UserTabWidget(QtGui.QWidget):
     # 現在の条件で新しいタブを作る。
     keyword = self.keywordLineEdit.text()
     check = self.listFilterCheckBox.isChecked()
-    if check:
-      tabText = '※' + keyword
-    else:
-      tabText = keyword.toUtf8()
-    newtab = self.createTab(tabText)
-    newtab.keywordLineEdit.setText(self.keywordLineEdit.text())
-    newtab.listFilterCheckBox.setChecked(self.listFilterCheckBox.isChecked())
+    newtab = self.createTab()
+    newtab.keywordLineEdit.setText(keyword)
+    newtab.listFilterCheckBox.setChecked(check)
 
   def removeTabOrItem(self):
     if self.EVENT_TAB:
@@ -150,22 +147,37 @@ class UserTabWidget(QtGui.QWidget):
     self.updateAddButton()
 
   def updateAddButton(self):
+    keyword = self.keywordLineEdit.text()
+
     self.addTabPushButton.setEnabled(
-      not self.keywordLineEdit.text().isEmpty() or
+      not keyword.isEmpty() or
        self.listFilterCheckBox.isChecked())
+
+    if keyword.isEmpty():
+      keyword = self.DEFAULT_TAB_TEXT
+    else:
+      keyword = keyword.toUtf8()
+
+    if self.listFilterCheckBox.isChecked():
+      tabText = '※' + keyword
+    else:
+      tabText = keyword
+    self.tabWidget.setTabText(self.tabWidget.indexOf(self),
+                              self.trUtf8(tabText))
 
 class DicUserTabWidget(UserTabWidget):
   EVENT_TAB = True
   ICON_FILE_NAME = 'dic.ico'
+  DEFAULT_TAB_TEXT = '大百科'
   TAB_TOOL_TIP = 'ニコニコ大百科のイベント一覧です。'
   LIST_FILTER_CHECKBOX_TEXT = 'ウォッチリストで絞る'
   ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
   REMOVE_PUSH_BUTTON_TEXT = 'このタブを削除'
 
-  def __init__(self, mainWindow, tabText = '大百科', removable = False):
+  def __init__(self, mainWindow, removable = False):
     self.tableModel = mainWindow.dicTableModel
     self.filterModel = mainWindow.dicFilterModel
-    UserTabWidget.__init__(self, mainWindow, tabText, removable)
+    UserTabWidget.__init__(self, mainWindow, removable)
 
     self.treeView.setModel(self.filterModel)
     self.treeView.hideColumn(self.tableModel.COL_TITLE_INDEX) # 表示用じゃない記事名は隠す。
@@ -181,22 +193,22 @@ class DicUserTabWidget(UserTabWidget):
     menu.addSeparator()
     menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.addWatchlist(cat, title, view_title))
 
-  def createTab(self, tabText):
-    return DicUserTabWidget(self.mainWindow, tabText, True)
+  def createTab(self):
+    return DicUserTabWidget(self.mainWindow, True)
 
 class LiveUserTabWidget(UserTabWidget):
   EVENT_TAB = True
   ICON_FILE_NAME = 'live.ico'
-  TAB_TEXT = '生放送'
+  DEFAULT_TAB_TEXT = '生放送'
   TAB_TOOL_TIP = 'ニコニコ生放送のイベント一覧です。'
   LIST_FILTER_CHECKBOX_TEXT = 'コミュニティリストで絞る'
   ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
   REMOVE_PUSH_BUTTON_TEXT = 'このタブを削除'
 
-  def __init__(self, mainWindow, tabText = '生放送', removable = False):
+  def __init__(self, mainWindow, removable = False):
     self.tableModel = mainWindow.liveTableModel
     self.filterModel = mainWindow.liveFilterModel
-    UserTabWidget.__init__(self, mainWindow, tabText, removable)
+    UserTabWidget.__init__(self, mainWindow, removable)
 
     self.treeView.setModel(self.filterModel)
     self.treeView.hideColumn(self.tableModel.COL_COM_ID_INDEX) # 表示用じゃない記事名は隠す。
@@ -218,7 +230,7 @@ class LiveUserTabWidget(UserTabWidget):
     menu.addSeparator()
     menu.addAction(u'コミュニティを通知対象にする', lambda: self.mainWindow.addCommunity(com_id, com_name))
 
-  def createTab(self, tabText):
-    return LiveUserTabWidget(self.mainWindow, tabText, True)
+  def createTab(self):
+    return LiveUserTabWidget(self.mainWindow, True)
 
 
