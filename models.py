@@ -154,6 +154,10 @@ class NicoLiveTableModel(TableModel):
           del self.datas[crow]
         finally:
           self.endRemoveRows()
+
+      # layoutChangedをemitしたらdynamicSortFilterが効くようになったみたい。
+      # いまいち挙動不明。
+      self.emit(QtCore.SIGNAL('layoutChanged()'))
     finally:
       self.lock.release()
 
