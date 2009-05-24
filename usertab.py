@@ -47,7 +47,7 @@ class UserTabWidget(QtGui.QWidget):
   def __init__(self, mainWindow, initial):
     self.mainWindow = mainWindow
     self.initial = initial
-    tabWidget = mainWindow.ui.tabWidget
+    tabWidget = mainWindow.tabWidget
     self.tabWidget = tabWidget
     QtGui.QWidget.__init__(self, tabWidget)
 
@@ -62,40 +62,46 @@ class UserTabWidget(QtGui.QWidget):
     # self.gridLayout_2.setObjectName("gridLayout_2")
     horizontalLayout = QtGui.QHBoxLayout()
 
-    # 検索キーワード用LineEditとLabel
-    label = QtGui.QLabel(self)
-    label.setText(self.trUtf8('検索キーワード'))
-    horizontalLayout.addWidget(label)
-    self.keywordLineEdit = QtGui.QLineEdit(self)
-    horizontalLayout.addWidget(self.keywordLineEdit)
-    label.setBuddy(self.keywordLineEdit)
-    self.connect(self.keywordLineEdit,
-                 QtCore.SIGNAL('textChanged(const QString &)'),
-                 self.keywordLineEditChanged)
+    if self.EVENT_TAB:
+      # 検索キーワード用LineEditとLabel
+      label = QtGui.QLabel(self)
+      label.setText(self.trUtf8('検索キーワード'))
+      horizontalLayout.addWidget(label)
+      self.keywordLineEdit = QtGui.QLineEdit(self)
+      horizontalLayout.addWidget(self.keywordLineEdit)
+      label.setBuddy(self.keywordLineEdit)
+      self.connect(self.keywordLineEdit,
+                   QtCore.SIGNAL('textChanged(const QString &)'),
+                   self.keywordLineEditChanged)
 
-    # リスト(ウォッチリスト/コミュニティリスト)でのフィルタCheckBox
-    self.listFilterCheckBox = QtGui.QCheckBox(self)
-    self.connect(self.listFilterCheckBox,
-                 QtCore.SIGNAL('toggled(bool)'),
-                 self.listFilterCheckBoxToggled)
-    horizontalLayout.addWidget(self.listFilterCheckBox)
+      # リスト(ウォッチリスト/コミュニティリスト)でのフィルタCheckBox
+      self.listFilterCheckBox = QtGui.QCheckBox(self)
+      self.listFilterCheckBox.setText(self.trUtf8(self.LIST_FILTER_CHECKBOX_TEXT))
+      self.connect(self.listFilterCheckBox,
+                   QtCore.SIGNAL('toggled(bool)'),
+                   self.listFilterCheckBoxToggled)
+      horizontalLayout.addWidget(self.listFilterCheckBox)
 
     # 横スペーサ
     spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
     horizontalLayout.addItem(spacerItem)
 
-    # 指定した検索条件での新たなタブ追加ボタン
-    self.addTabPushButton = QtGui.QPushButton(self)
+    # リストアイテムもしくは指定した検索条件での新たなタブ追加ボタン
+    self.addPushButton = QtGui.QPushButton(self)
     sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
     sizePolicy.setHorizontalStretch(0)
     sizePolicy.setVerticalStretch(0)
-    sizePolicy.setHeightForWidth(self.addTabPushButton.sizePolicy().hasHeightForWidth())
-    self.addTabPushButton.setSizePolicy(sizePolicy)
-    self.addTabPushButton.setMinimumSize(QtCore.QSize(0, 16))
-    self.addTabPushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
-    self.connect(self.addTabPushButton, QtCore.SIGNAL('clicked()'),
-                 self.addTab)
-    horizontalLayout.addWidget(self.addTabPushButton)
+    sizePolicy.setHeightForWidth(self.addPushButton.sizePolicy().hasHeightForWidth())
+    self.addPushButton.setSizePolicy(sizePolicy)
+    self.addPushButton.setMinimumSize(QtCore.QSize(0, 16))
+    self.addPushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+    if self.EVENT_TAB:
+      self.addPushButton.setText(self.trUtf8(self.ADD_TAB_PUSH_BUTTON_TEXT))
+    else:
+      self.addPushButton.setText(self.trUtf8(self.ADD_ITEM_PUSH_BUTTON_TEXT))
+    self.connect(self.addPushButton, QtCore.SIGNAL('clicked()'),
+                 self.addTabOrItem)
+    horizontalLayout.addWidget(self.addPushButton)
 
     # リストアイテムもしくはタブもしくは条件削除ボタン
     self.removePushButton = QtGui.QPushButton(self)
@@ -106,6 +112,13 @@ class UserTabWidget(QtGui.QWidget):
     self.removePushButton.setSizePolicy(sizePolicy)
     self.removePushButton.setMinimumSize(QtCore.QSize(0, 16))
     self.removePushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+    if self.EVENT_TAB:
+      if initial:
+        self.removePushButton.setText(self.trUtf8(self.REMOVE_COND_PUSH_BUTTON_TEXT))
+      else:
+        self.removePushButton.setText(self.trUtf8(self.REMOVE_TAB_PUSH_BUTTON_TEXT))
+    else:
+      self.removePushButton.setText(self.trUtf8(self.REMOVE_ITEM_PUSH_BUTTON_TEXT))
     self.connect(self.removePushButton, QtCore.SIGNAL('clicked()'),
                  self.removeTabOrItem)
     horizontalLayout.addWidget(self.removePushButton)
@@ -133,12 +146,6 @@ class UserTabWidget(QtGui.QWidget):
 
     tabWidget.addTab(self, self.icon, '')
     tabWidget.setTabToolTip(tabWidget.indexOf(self), self.trUtf8(self.TAB_TOOL_TIP))
-    self.listFilterCheckBox.setText(self.trUtf8(self.LIST_FILTER_CHECKBOX_TEXT))
-    self.addTabPushButton.setText(self.trUtf8(self.ADD_TAB_PUSH_BUTTON_TEXT))
-    if initial:
-      self.removePushButton.setText(self.trUtf8(self.REMOVE_COND_PUSH_BUTTON_TEXT))
-    else:
-      self.removePushButton.setText(self.trUtf8(self.REMOVE_TAB_PUSH_BUTTON_TEXT))
 
     # 追加ボタンの状態を更新
     self.updateAddButton()
@@ -153,7 +160,7 @@ class UserTabWidget(QtGui.QWidget):
     self.addContextMenuAction(popup_menu, tableModel_index)
     popup_menu.exec_(self.treeView.mapToGlobal(point))
 
-  def addTab(self):
+  def addTabOrItem(self):
     # 現在の条件で新しいタブを作り、そこにフォーカスをうつす。
     keyword = self.keywordLineEdit.text()
     check = self.listFilterCheckBox.isChecked()
@@ -194,26 +201,30 @@ class UserTabWidget(QtGui.QWidget):
     self.updateAddButton()
 
   def updateAddButton(self):
-    keyword = self.keywordLineEdit.text()
+    if self.EVENT_TAB:
+      keyword = self.keywordLineEdit.text()
 
-    self.addTabPushButton.setEnabled(
-      self.initial and (
-        not keyword.isEmpty() or
-        self.listFilterCheckBox.isChecked()
+      self.addPushButton.setEnabled(
+        self.initial and (
+          not keyword.isEmpty() or
+          self.listFilterCheckBox.isChecked()
+        )
       )
-    )
 
-    if keyword.isEmpty():
-      keyword = self.DEFAULT_TAB_TEXT
-    else:
-      keyword = keyword.toUtf8()
+      if keyword.isEmpty():
+        keyword = self.DEFAULT_TAB_TEXT
+      else:
+        keyword = keyword.toUtf8()
 
-    if self.listFilterCheckBox.isChecked():
-      tabText = '※' + keyword
+      if self.listFilterCheckBox.isChecked():
+        tabText = '※' + keyword
+      else:
+        tabText = keyword
+      self.tabWidget.setTabText(self.tabWidget.indexOf(self),
+                                self.trUtf8(tabText))
     else:
-      tabText = keyword
-    self.tabWidget.setTabText(self.tabWidget.indexOf(self),
-                              self.trUtf8(tabText))
+      self.tabWidget.setTabText(self.tabWidget.indexOf(self),
+                                self.trUtf8(self.DEFAULT_TAB_TEXT))
 
 class DicUserTabWidget(UserTabWidget):
   EVENT_TAB = True
@@ -276,3 +287,60 @@ class LiveUserTabWidget(UserTabWidget):
   def createTab(self):
     return LiveUserTabWidget(self.mainWindow, False)
 
+class WatchListUserTabWidget(UserTabWidget):
+  EVENT_TAB = False
+  ICON_FILE_NAME = 'dic.ico'
+  DEFAULT_TAB_TEXT = 'ウォッチリスト'
+  TAB_TOOL_TIP = 'イベントを知りたい大百科の記事一覧です。'
+  ADD_ITEM_PUSH_BUTTON_TEXT = 'ウォッチリスト追加'
+  REMOVE_ITEM_PUSH_BUTTON_TEXT = 'ウォッチリスト削除'
+
+  def __init__(self, mainWindow, initial = True):
+    self.tableModel = mainWindow.watchListTableModel
+    self.filterModel = QtGui.QSortFilterProxyModel(mainWindow)
+    self.filterModel.setSourceModel(self.tableModel)
+    UserTabWidget.__init__(self, mainWindow, initial)
+
+    self.treeView.setModel(self.filterModel)
+
+  def addContextMenuAction(self, menu, table_index):
+    # FIXME: implement!!!!!
+    row = self.tableModel.raw_row_data(table_index.row())
+    live_id = unicode(row[self.tableModel.COL_LIVE_ID_INDEX].toString())
+    com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
+    com_name = unicode(row[self.tableModel.COL_COM_NAME_INDEX].toString())
+    url = 'http://live.nicovideo.jp/watch/' + live_id
+
+    menu.addAction(u'ページを見る', lambda: webbrowser.open(url))
+    menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
+    menu.addSeparator()
+    menu.addAction(u'削除する', lambda: self.mainWindow.addCommunity(com_id, com_name))
+
+class CommunityListUserTabWidget(UserTabWidget):
+  EVENT_TAB = False
+  ICON_FILE_NAME = 'live.ico'
+  DEFAULT_TAB_TEXT = 'コミュリスト'
+  TAB_TOOL_TIP = 'イベントを知りたいコミュニティの一覧です。'
+  ADD_ITEM_PUSH_BUTTON_TEXT = 'コミュ追加'
+  REMOVE_ITEM_PUSH_BUTTON_TEXT = 'コミュ削除'
+
+  def __init__(self, mainWindow, initial = True):
+    self.tableModel = mainWindow.communityListTableModel
+    self.filterModel = QtGui.QSortFilterProxyModel(mainWindow)
+    self.filterModel.setSourceModel(self.tableModel)
+    UserTabWidget.__init__(self, mainWindow, initial)
+
+    self.treeView.setModel(self.filterModel)
+
+  def addContextMenuAction(self, menu, table_index):
+    # FIXME: implement!!!!!
+    row = self.tableModel.raw_row_data(table_index.row())
+    live_id = unicode(row[self.tableModel.COL_LIVE_ID_INDEX].toString())
+    com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
+    com_name = unicode(row[self.tableModel.COL_COM_NAME_INDEX].toString())
+    url = 'http://live.nicovideo.jp/watch/' + live_id
+
+    menu.addAction(u'ページを見る', lambda: webbrowser.open(url))
+    menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
+    menu.addSeparator()
+    menu.addAction(u'削除する', lambda: self.mainWindow.addCommunity(com_id, com_name))

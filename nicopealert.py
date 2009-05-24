@@ -42,43 +42,33 @@ class MainWindow(QtGui.QMainWindow):
     try:
       f = open(self.SETTINGS_FILE_NAME, 'rb')
       self.settings = pickle.load(f)
-      self['watchList']
-      self['communityList']
+      self.settings['watchList']
+      self.settings['communityList']
     except:
       self.settings = {'watchList': {},
                        'communityList': {}}
 
+    # models
     self.dicTableModel = NicoDicTableModel(self)
     self.liveTableModel = NicoLiveTableModel(self)
-
-    # watchListTreeView
-    self.watchListTreeView = self.ui.watchListTreeView
     self.watchListTableModel = WatchListTableModel(self)
-    self.watchListTreeView.setModel(self.watchListTableModel)
-    self.watchListTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    self.watchListTreeView.setColumnWidth(0, 80)
-    self.watchListTreeView.setSortingEnabled(True)
-    self.watchListTreeView.setRootIsDecorated(False)
-    self.watchListTreeView.setAlternatingRowColors(True)
+    self.communityListTableModel = CommunityTableModel(self)
     self.watchListTableModel.addWatchList(self.settings['watchList'])
+    self.communityListTableModel.addCommunityList(self.settings['communityList'])
 
-    # communityTreeView
-    self.communityTreeView = self.ui.communityTreeView
-    self.communityTableModel = CommunityTableModel(self)
-    self.communityTreeView.setModel(self.communityTableModel)
-    self.communityTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    self.communityTreeView.setColumnWidth(0, 80)
-    self.communityTreeView.setSortingEnabled(True)
-    self.communityTreeView.setRootIsDecorated(False)
-    self.communityTreeView.setAlternatingRowColors(True)
-    self.communityTableModel.addCommunityList(self.settings['communityList'])
+    # tab widget
+    self.tabWidget = QtGui.QTabWidget(self.ui.centralwidget)
+    self.tabWidget.setLayoutDirection(QtCore.Qt.LeftToRight)
+    self.tabWidget.setCurrentIndex(0)
+    self.ui.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
-    # new user tab widget !!!
+    # initial tabs
     DicUserTabWidget(self)
     LiveUserTabWidget(self)
+    WatchListUserTabWidget(self)
+    CommunityListUserTabWidget(self)
 
     # trayIcon/trayIconMenu/trayIconImg
-
     self.trayIconImg = QtGui.QIcon(self.tr('dic.ico'))
     self.trayIconMenu = QtGui.QMenu(self)
     # self.trayIconMenu.addAction(u'終了')
@@ -112,7 +102,7 @@ class MainWindow(QtGui.QMainWindow):
 
   def addCommunity(self, com_id, com_name):
     u = {com_id: {'name': com_name}}
-    self.communityTableModel.addCommunityList(u)
+    self.communityListTableModel.addCommunityList(u)
     self.settings['communityList'].update(u)
     self.saveSettings()
 
