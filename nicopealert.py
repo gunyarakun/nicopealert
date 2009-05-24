@@ -4,8 +4,8 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: タブ削除
 # TODO: 検索条件の保存
-# TODO: ウォッチリスト/コミュニティ削除
 # TODO: カラムサイズ初期値設定
 # TODO: カラム移動・サイズの記憶
 # TODO: 4つのTableModelの共通化
@@ -318,9 +318,10 @@ class CommunityTableModel(QtCore.QAbstractTableModel):
 class UserTabWidget(QtGui.QWidget):
   icon = None
 
-  def __init__(self, mainWindow, tabText):
+  def __init__(self, mainWindow, tabText, removable):
     self.mainWindow = mainWindow
     tabWidget = mainWindow.ui.tabWidget
+    self.tabWidget = tabWidget
     QtGui.QWidget.__init__(self, tabWidget)
 
     sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
@@ -369,6 +370,22 @@ class UserTabWidget(QtGui.QWidget):
                  self.addTab)
     horizontalLayout.addWidget(self.addTabPushButton)
 
+    # リストアイテムもしくはタブ削除ボタン
+    self.removePushButton = QtGui.QPushButton(self)
+    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+    sizePolicy.setHorizontalStretch(0)
+    sizePolicy.setVerticalStretch(0)
+    sizePolicy.setHeightForWidth(self.removePushButton.sizePolicy().hasHeightForWidth())
+    self.removePushButton.setSizePolicy(sizePolicy)
+    self.removePushButton.setMinimumSize(QtCore.QSize(0, 16))
+    self.removePushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+    self.connect(self.removePushButton, QtCore.SIGNAL('clicked()'),
+                 self.removeTabOrItem)
+    if not removable:
+      self.removePushButton.setEnabled(False)
+    horizontalLayout.addWidget(self.removePushButton)
+
+    #
     gridLayout.addLayout(horizontalLayout, 5, 0, 1, 1)
 
     # イベント表示用TreeView
@@ -394,6 +411,7 @@ class UserTabWidget(QtGui.QWidget):
     tabWidget.setTabToolTip(tabWidget.indexOf(self), self.trUtf8(self.TAB_TOOL_TIP))
     self.listFilterCheckBox.setText(self.trUtf8(self.LIST_FILTER_CHECKBOX_TEXT))
     self.addTabPushButton.setText(self.trUtf8(self.ADD_TAB_PUSH_BUTTON_TEXT))
+    self.removePushButton.setText(self.trUtf8(self.REMOVE_PUSH_BUTTON_TEXT))
 
   def handleContextMenu(self, point):
     tree_index = self.treeView.indexAt(point)
@@ -417,6 +435,14 @@ class UserTabWidget(QtGui.QWidget):
     newtab.keywordLineEdit.setText(self.keywordLineEdit.text())
     newtab.listFilterCheckBox.setChecked(self.listFilterCheckBox.isChecked())
 
+  def removeTabOrItem(self):
+    if self.EVENT_TAB:
+      # 大百科/ニコ生タブ: タブ削除
+     self.tabWidget.removeTab(self.tabWidget.indexOf(self))
+    else:
+      # ウォッチリスト/コミュニティリスト: 選択アイテム削除
+      pass
+
   def keywordLineEditChanged(self):
     # 検索キーワードの切り替え
     regex = QtCore.QRegExp(self.keywordLineEdit.text(),
@@ -429,15 +455,17 @@ class UserTabWidget(QtGui.QWidget):
     self.filterModel.setListFilter(self.listFilterCheckBox.isChecked())
 
 class DicUserTabWidget(UserTabWidget):
+  EVENT_TAB = True
   ICON_FILE_NAME = 'dic.ico'
   TAB_TOOL_TIP = 'ニコニコ大百科のイベント一覧です。'
   LIST_FILTER_CHECKBOX_TEXT = 'ウォッチリストで絞る'
   ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
+  REMOVE_PUSH_BUTTON_TEXT = 'このタブを削除'
 
-  def __init__(self, mainWindow, tabText = '大百科'):
+  def __init__(self, mainWindow, tabText = '大百科', removable = False):
     self.tableModel = mainWindow.dicTableModel
     self.filterModel = mainWindow.dicFilterModel
-    UserTabWidget.__init__(self, mainWindow, tabText)
+    UserTabWidget.__init__(self, mainWindow, tabText, removable)
 
     self.treeView.setModel(self.filterModel)
     self.treeView.hideColumn(self.tableModel.COL_TITLE_INDEX) # 表示用じゃない記事名は隠す。
@@ -454,19 +482,21 @@ class DicUserTabWidget(UserTabWidget):
     menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.addWatchlist(cat, title, view_title))
 
   def createTab(self, tabText):
-    return DicUserTabWidget(self.mainWindow, tabText)
+    return DicUserTabWidget(self.mainWindow, tabText, True)
 
 class LiveUserTabWidget(UserTabWidget):
+  EVENT_TAB = True
   ICON_FILE_NAME = 'live.ico'
   TAB_TEXT = '生放送'
   TAB_TOOL_TIP = 'ニコニコ生放送のイベント一覧です。'
   LIST_FILTER_CHECKBOX_TEXT = 'コミュニティリストで絞る'
   ADD_TAB_PUSH_BUTTON_TEXT = 'この条件を保存'
+  REMOVE_PUSH_BUTTON_TEXT = 'このタブを削除'
 
-  def __init__(self, mainWindow, tabText = '生放送'):
+  def __init__(self, mainWindow, tabText = '生放送', removable = False):
     self.tableModel = mainWindow.liveTableModel
     self.filterModel = mainWindow.liveFilterModel
-    UserTabWidget.__init__(self, mainWindow, tabText)
+    UserTabWidget.__init__(self, mainWindow, tabText, removable)
 
     self.treeView.setModel(self.filterModel)
     self.treeView.hideColumn(self.tableModel.COL_COM_ID_INDEX) # 表示用じゃない記事名は隠す。
@@ -489,7 +519,7 @@ class LiveUserTabWidget(UserTabWidget):
     menu.addAction(u'コミュニティを通知対象にする', lambda: self.mainWindow.addCommunity(com_id, com_name))
 
   def createTab(self, tabText):
-    return LiveUserTabWidget(self.mainWindow, tabText)
+    return LiveUserTabWidget(self.mainWindow, tabText, True)
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
