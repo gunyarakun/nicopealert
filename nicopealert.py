@@ -95,7 +95,7 @@ class MainWindow(QtGui.QMainWindow):
     self.nicopoll.fetch()
 
   def appendWatchList(self, category, title, view_title):
-    key = '%s%s' % (category, title)
+    key = u'%s%s' % (category, title)
     i = {'category': category,
          'title': title,
          'view_title': view_title}
@@ -108,6 +108,24 @@ class MainWindow(QtGui.QMainWindow):
     u = {'id': com_id, 'name': com_name}
     self.communityListTableModel.appendItems([u])
     self.settings['communityList'][com_id] = u
+    self.saveSettings()
+
+  # NOTE: 小汚い
+  def removeWatchList(self, row):
+    category, title = \
+      map(lambda d: unicode(d.toString()),
+          self.watchListTableModel.raw_row_data(row)[0:2])
+    key = u'%s%s' % (category, title)
+    self.watchListTableModel.removeRow(row)
+    del self.settings['watchList'][key]
+    self.saveSettings()
+
+  # NOTE: 小汚い
+  def removeCommunityList(self, row):
+    com_id = unicode(self.communityListTableModel.raw_row_data(row)[
+        self.communityListTableModel.COL_COM_ID_INDEX].toString())
+    self.communityListTableModel.removeRow(row)
+    del self.settings['communityList'][com_id]
     self.saveSettings()
 
   def saveSettings(self):

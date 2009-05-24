@@ -33,6 +33,23 @@ class TableModel(QtCore.QAbstractTableModel):
       return self.COL_NAMES[col]
     return QtCore.QVariant()
 
+  def removeRows(self, row, count, parent = QtCore.QModelIndex()):
+    if count == 0:
+      return False
+    ret = False
+    self.lock.acquire()
+    try:
+      end = row + count
+      self.beginRemoveRows(parent, row, end - 1)
+      try:
+        del self.datas[row:end]
+        ret = True
+      finally:
+        self.endRemoveRows()
+    finally:
+      self.lock.release()
+    return ret
+
   # これは独自メソッド。
   def raw_row_data(self, row):
     return self.datas[row]
@@ -143,4 +160,3 @@ class CommunityTableModel(TableModel):
 
   COL_COM_ID_INDEX = 0
   COL_COM_NAME_INDEX = 0
-

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import re
 import urllib
 import webbrowser
 from PyQt4 import QtCore, QtGui
@@ -93,7 +94,7 @@ class UserTabWidget(QtGui.QWidget):
     if self.EVENT_TAB:
       # システムトレイで通知
       self.trayNotifyCheckBox = QtGui.QCheckBox(self)
-      self.trayNotifyCheckBox.setText(self.trUtf8('トレイ'))
+      self.trayNotifyCheckBox.setText(self.trUtf8('文'))
       self.connect(self.trayNotifyCheckBox,
                    QtCore.SIGNAL('toggled(bool)'),
                    lambda: self.tableModel.setNotify(self.tableModel.NOTIFY_TRAY,
@@ -111,7 +112,7 @@ class UserTabWidget(QtGui.QWidget):
 
       # 自動open
       self.browserNotifyCheckBox = QtGui.QCheckBox(self)
-      self.browserNotifyCheckBox.setText(self.trUtf8('自動閲覧'))
+      self.browserNotifyCheckBox.setText(self.trUtf8('ブラ'))
       self.connect(self.browserNotifyCheckBox,
                    QtCore.SIGNAL('toggled(bool)'),
                    lambda: self.tableModel.setNotify(self.tableModel.NOTIFY_BROWSER,
@@ -193,14 +194,20 @@ class UserTabWidget(QtGui.QWidget):
     popup_menu.exec_(self.treeView.mapToGlobal(point))
 
   def addTabOrItem(self):
-    # 現在の条件で新しいタブを作り、そこにフォーカスをうつす。
     keyword = self.keywordLineEdit.text()
-    check = self.listFilterCheckBox.isChecked()
-    newtab = self.createTab()
-    newtab.keywordLineEdit.setText(keyword)
-    newtab.listFilterCheckBox.setChecked(check)
-    self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(newtab))
-    self.clearCond()
+    if self.EVENT_TAB:
+      # 現在の条件で新しいタブを作り、そこにフォーカスをうつす。
+      check = self.listFilterCheckBox.isChecked()
+      newtab = self.createTab()
+      newtab.keywordLineEdit.setText(keyword)
+      newtab.listFilterCheckBox.setChecked(check)
+      self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(newtab))
+      self.clearCond()
+    else:
+      # リストの要素を追加する
+      for i in unicode(keyword).split():
+        self.addItem(i)
+      self.keywordLineEdit.setText('')
 
   def clearCond(self):
     self.keywordLineEdit.setText('')
@@ -217,9 +224,10 @@ class UserTabWidget(QtGui.QWidget):
         self.tabWidget.removeTab(self.tabWidget.indexOf(self))
     else:
       # ウォッチリスト/コミュニティリスト: 選択アイテム削除
-      for idx in self.treeView.selectedIndexes():
-        self.filterModel.removeRows(idx.row(), 1)
-      # TODO: モデル側で、削除したものをsettingsから消す。
+      idxs = self.treeView.selectedIndexes()
+      if len(idxs) >= 1:
+        # NOTE: removeItemについては設計が汚い。修正すべき。
+        self.removeItem(idxs[0].row())
 
   def keywordLineEditChanged(self):
     # 検索キーワードの切り替え
@@ -330,6 +338,8 @@ class WatchListUserTabWidget(UserTabWidget):
   ADD_ITEM_PUSH_BUTTON_TEXT = 'ウォッチリスト追加'
   REMOVE_ITEM_PUSH_BUTTON_TEXT = 'ウォッチリスト削除'
 
+  URL_REGEX = re.compile(r'^(http://dic.nicovideo.jp)?(/b)?/([aviuc])/([^/]+)')
+
   def __init__(self, mainWindow, initial = True):
     self.tableModel = mainWindow.watchListTableModel
     self.filterModel = QtGui.QSortFilterProxyModel(mainWindow)
@@ -347,7 +357,18 @@ class WatchListUserTabWidget(UserTabWidget):
     menu.addAction(u'ページを見る', lambda: webbrowser.open(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
-    menu.addAction(u'削除する', lambda: self.mainWindow.removeWatchList(cat, title))
+    menu.addAction(u'削除する', lambda: self.mainWindow.removeWatchList(table_index.row()))
+
+  def addItem(self, url):
+    m = self.URL_REGEX.match(url)
+    if m:
+      category = m.group(3)
+      title = urllib.unquote(m.group(4)).encode('raw_unicode_escape').decode('utf-8')
+      # TODO: 表示用記事名を取得する
+      self.mainWindow.appendWatchList(category, title, None)
+
+  def removeItem(self, index):
+    self.mainWindow.removeWatchList(index)
 
 class CommunityListUserTabWidget(UserTabWidget):
   EVENT_TAB = False
@@ -375,4 +396,10 @@ class CommunityListUserTabWidget(UserTabWidget):
     menu.addAction(u'ページを見る', lambda: webbrowser.open(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
-    menu.addAction(u'削除する', lambda: self.mainWindow.removeCommunityList(com_id))
+    menu.addAction(u'削除する', lambda: self.mainWindow.removeCommunityList(table_index.row()))
+
+  def addItem(self, com_id):
+    self.mainWindow.appendCommunityList(com_id, None)
+
+  def removeItem(self, index):
+    self.mainWindow.removeCommunityList(index)
