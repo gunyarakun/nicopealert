@@ -102,7 +102,7 @@ class NicoPoll:
     for k in new_keys:
       new_events.append(fetched_events[k])
 
-    self.dicTableModel.append_event(new_events)
+    self.dicTableModel.appendItems(new_events)
     self.dic_details.update(fetched_events)
 
   def fetch_live_detail_from_queue(self):
@@ -127,7 +127,7 @@ class NicoPoll:
       detail[u'live_id'] = live_id
       detail[u'time'] = datetime.fromtimestamp(detail[u'time'])
     self.live_details.update(details)
-    self.liveTableModel.live_handler(details.values())
+    self.liveTableModel.appendItems(details.values())
 
   def fetch_live_detail_from_live_id(self, live_id, opener):
     url = 'http://dic.nicovideo.jp:2525/%s.json.gz' % live_id.encode('ascii')

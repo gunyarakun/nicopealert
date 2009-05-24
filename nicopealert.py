@@ -4,23 +4,25 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: なくなった生を削除する部分の復活。
 # TODO: ウォッチリスト/コミュニティリストの要素追加・削除
+
 # TODO: 検索条件の保存
 # TODO: カラムサイズ初期値設定
 # TODO: カラム移動・サイズの記憶
-# TODO: 4つのTableModelの共通化
 # TODO: 新着イベントでタブ色変更
+# TODO: 複数起動防止
 # TODO: コミュ・ウォッチリスト対象の背景色変更
 # TODO: timer_handlerのスレッド化。詰まることがあるかもしれないので。
-# TODO: なくなった生を削除する部分の復活。
 # TODO: 生ごとの詳細表示
 # TODO: リファクタリング
 # TODO: ネットワーク無効実験
 # TODO: エラーハンドリング丁寧に、エラー報告ツール(ログとか)
 
+import os # for os.rename
+import cPickle as pickle
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
-import cPickle as pickle
 
 from nicopoll import NicoPoll
 from usertab import *
@@ -41,6 +43,7 @@ class MainWindow(QtGui.QMainWindow):
     try:
       f = open(self.SETTINGS_FILE_NAME, 'rb')
       self.settings = pickle.load(f)
+      f.close()
       self.settings['watchList']
       self.settings['communityList']
     except:
@@ -52,8 +55,8 @@ class MainWindow(QtGui.QMainWindow):
     self.liveTableModel = NicoLiveTableModel(self)
     self.watchListTableModel = WatchListTableModel(self)
     self.communityListTableModel = CommunityTableModel(self)
-    self.watchListTableModel.addWatchList(self.settings['watchList'])
-    self.communityListTableModel.addCommunityList(self.settings['communityList'])
+    self.watchListTableModel.appendItems(self.settings['watchList'].values())
+    self.communityListTableModel.appendItems(self.settings['communityList'].values())
 
     # tab widget
     self.tabWidget = QtGui.QTabWidget(self.ui.centralwidget)
@@ -90,25 +93,34 @@ class MainWindow(QtGui.QMainWindow):
   def timer_handler(self):
     self.nicopoll.fetch()
 
-  def addWatchList(self, category, title, view_title):
+  def appendWatchList(self, category, title, view_title):
     key = '%s%s' % (category, title)
-    i = {key: {'category': category,
-               'title': title,
-               'view_title': view_title}}
-    self.watchListTableModel.addWatchList(i)
-    self.settings['watchList'].update(i)
+    i = {'category': category,
+         'title': title,
+         'view_title': view_title}
+    self.watchListTableModel.appendItems([i])
+    self.settings['watchList'][key] = i
     self.saveSettings()
 
-  def addCommunity(self, com_id, com_name):
-    u = {com_id: {'name': com_name}}
-    self.communityListTableModel.addCommunityList(u)
-    self.settings['communityList'].update(u)
+  def appendCommunityList(self, com_id, com_name):
+    # NOTE: com_idはkeyにもvalueにも入っている。
+    u = {'id': com_id, 'name': com_name}
+    self.communityListTableModel.appendItems([u])
+    self.settings['communityList'][com_id] = u
     self.saveSettings()
 
   def saveSettings(self):
     try:
-      f = open(self.SETTINGS_FILE_NAME, 'wb')
+      tmpfilename = self.SETTINGS_FILE_NAME + '.tmp' 
+      f = open(tmpfilename, 'wb')
       pickle.dump(self.settings, f)
+      f.close()
+      if os.name == 'nt':
+        try:
+          os.remove(self.SETTINGS_FILE_NAME)
+        except:
+          pass
+      os.rename(tmpfilename, self.SETTINGS_FILE_NAME)
     except:
       pass
 

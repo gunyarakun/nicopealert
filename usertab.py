@@ -21,6 +21,7 @@ class FilterListProxyModel(QtGui.QSortFilterProxyModel):
       cond |= tableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
 
     filter_id = tableModel.filter_id(source_row)
+    
     return cond and (not self.listFilter or filter_id in self.list.keys())
 
   def setListFilter(self, bool):
@@ -87,6 +88,35 @@ class UserTabWidget(QtGui.QWidget):
     # 横スペーサ
     spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
     horizontalLayout.addItem(spacerItem)
+
+    # 通知系
+    if self.EVENT_TAB:
+      # システムトレイで通知
+      self.trayNotifyCheckBox = QtGui.QCheckBox(self)
+      self.trayNotifyCheckBox.setText(self.trUtf8('トレイ'))
+      self.connect(self.trayNotifyCheckBox,
+                   QtCore.SIGNAL('toggled(bool)'),
+                   lambda: self.tableModel.setNotify(self.tableModel.NOTIFY_TRAY,
+                                                     self.trayNotifyCheckBox.isChecked()))
+      horizontalLayout.addWidget(self.trayNotifyCheckBox)
+
+      # 音
+      self.soundNotifyCheckBox = QtGui.QCheckBox(self)
+      self.soundNotifyCheckBox.setText(self.trUtf8('音'))
+      self.connect(self.soundNotifyCheckBox,
+                   QtCore.SIGNAL('toggled(bool)'),
+                   lambda: self.tableModel.setNotify(self.tableModel.NOTIFY_SOUND,
+                                                     self.trayNotifyCheckBox.isChecked()))
+      horizontalLayout.addWidget(self.soundNotifyCheckBox)
+
+      # 自動open
+      self.browserNotifyCheckBox = QtGui.QCheckBox(self)
+      self.browserNotifyCheckBox.setText(self.trUtf8('自動閲覧'))
+      self.connect(self.browserNotifyCheckBox,
+                   QtCore.SIGNAL('toggled(bool)'),
+                   lambda: self.tableModel.setNotify(self.tableModel.NOTIFY_BROWSER,
+                                                     self.trayNotifyCheckBox.isChecked()))
+      horizontalLayout.addWidget(self.browserNotifyCheckBox)
 
     # リストアイテムもしくは指定した検索条件での新たなタブ追加ボタン
     self.addPushButton = QtGui.QPushButton(self)
@@ -255,7 +285,7 @@ class DicUserTabWidget(UserTabWidget):
     menu.addAction(u'記事/掲示板を見る', lambda: webbrowser.open(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
-    menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.addWatchList(cat, title, view_title))
+    menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.appendWatchList(cat, title, view_title))
 
   def createTab(self):
     return DicUserTabWidget(self.mainWindow, False)
@@ -286,7 +316,7 @@ class LiveUserTabWidget(UserTabWidget):
     menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
-    menu.addAction(u'コミュニティを通知対象にする', lambda: self.mainWindow.addCommunity(com_id, com_name))
+    menu.addAction(u'コミュニティを通知対象にする', lambda: self.mainWindow.appendCommunityList(com_id, com_name))
 
   def createTab(self):
     return LiveUserTabWidget(self.mainWindow, False)
