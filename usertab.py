@@ -63,33 +63,6 @@ class UserTabWidget(QtGui.QWidget):
     gridLayout = QtGui.QGridLayout(self)
     horizontalLayout = QtGui.QHBoxLayout()
 
-    # 検索キーワード/リスト追加用LineEditとLabel
-    label = QtGui.QLabel(self)
-    horizontalLayout.addWidget(label)
-    self.keywordLineEdit = QtGui.QLineEdit(self)
-    label.setBuddy(self.keywordLineEdit)
-    horizontalLayout.addWidget(self.keywordLineEdit)
-
-    if self.EVENT_TAB:
-      label.setText(self.trUtf8('検索キーワード'))
-      self.connect(self.keywordLineEdit,
-                   QtCore.SIGNAL('textChanged(const QString &)'),
-                   self.keywordLineEditChanged)
-
-      # リスト(ウォッチリスト/コミュニティリスト)でのフィルタCheckBox
-      self.listFilterCheckBox = QtGui.QCheckBox(self)
-      self.listFilterCheckBox.setText(self.trUtf8(self.LIST_FILTER_CHECKBOX_TEXT))
-      self.connect(self.listFilterCheckBox,
-                   QtCore.SIGNAL('toggled(bool)'),
-                   self.listFilterCheckBoxToggled)
-      horizontalLayout.addWidget(self.listFilterCheckBox)
-    else:
-      label.setText(self.trUtf8(self.LINE_EDIT_LABEL))
-
-    # 横スペーサ
-    spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-    horizontalLayout.addItem(spacerItem)
-
     # 通知系
     if self.EVENT_TAB:
       # システムトレイで通知
@@ -118,6 +91,33 @@ class UserTabWidget(QtGui.QWidget):
                    lambda: self.tableModel.setNotify(self.tableModel.NOTIFY_BROWSER,
                                                      self.trayNotifyCheckBox.isChecked()))
       horizontalLayout.addWidget(self.browserNotifyCheckBox)
+
+    # 横スペーサ
+    spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+    horizontalLayout.addItem(spacerItem)
+
+    # 検索キーワード/リスト追加用LineEditとLabel
+    label = QtGui.QLabel(self)
+    horizontalLayout.addWidget(label)
+    self.keywordLineEdit = QtGui.QLineEdit(self)
+    label.setBuddy(self.keywordLineEdit)
+    horizontalLayout.addWidget(self.keywordLineEdit)
+
+    if self.EVENT_TAB:
+      label.setText(self.trUtf8('検索キーワード'))
+      self.connect(self.keywordLineEdit,
+                   QtCore.SIGNAL('textChanged(const QString &)'),
+                   self.keywordLineEditChanged)
+
+      # リスト(ウォッチリスト/コミュニティリスト)でのフィルタCheckBox
+      self.listFilterCheckBox = QtGui.QCheckBox(self)
+      self.listFilterCheckBox.setText(self.trUtf8(self.LIST_FILTER_CHECKBOX_TEXT))
+      self.connect(self.listFilterCheckBox,
+                   QtCore.SIGNAL('toggled(bool)'),
+                   self.listFilterCheckBoxToggled)
+      horizontalLayout.addWidget(self.listFilterCheckBox)
+    else:
+      label.setText(self.trUtf8(self.LINE_EDIT_LABEL))
 
     # リストアイテムもしくは指定した検索条件での新たなタブ追加ボタン
     self.addPushButton = QtGui.QPushButton(self)
