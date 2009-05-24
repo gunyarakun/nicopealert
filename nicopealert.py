@@ -5,6 +5,9 @@
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
 # TODO: 検索条件の追加・保存
+# TODO: 4つのTableModelの共通化
+# TODO: watchlist/communitylistタブもUserTabに変更(TableModel共通化後)
+# TODO: watchlistの表記
 # TODO: カラムサイズ初期値設定
 # TODO: コミュ・ウォッチリスト対象の背景色変更
 # TODO: timer_handlerのスレッド化。詰まることがあるかもしれないので。
@@ -36,11 +39,13 @@ class NicoDicTableModel(QtCore.QAbstractTableModel):
 
   RE_LF = re.compile(r'\r?\n')
 
+  COL_CATEGORY_INDEX = 0
+  COL_TITLE_INDEX = 1
+
   def __init__(self, mainWindow):
     QtCore.QAbstractTableModel.__init__(self, mainWindow)
     self.mainWindow = mainWindow
     self.datas = []
-    self.ids = []
 
   def rowCount(self, parent):
     return len(self.datas)
@@ -55,8 +60,12 @@ class NicoDicTableModel(QtCore.QAbstractTableModel):
       return QtCore.QVariant()
     return QtCore.QVariant(self.datas[index.row()][index.column()])
 
-  def dic_id(self, row_no):
-    return self.ids[row_no]
+  def raw_row_data(self, row):
+    return self.datas[row]
+
+  def filter_id(self, row_no):
+    r = self.datas[row_no]
+    return u'%s%s' % (r[self.COL_CATEGORY_INDEX], r[self.COL_TITLE_INDEX])
 
   def headerData(self, col, orientation, role):
     if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -82,25 +91,28 @@ class NicoDicTableModel(QtCore.QAbstractTableModel):
           elif val is None:
             row.append(QtCore.QVariant())
         self.datas.append(row)
-        self.ids.append('%s%s' % (e['category'], e['title']))
     finally:
       self.endInsertRows()
 
 class NicoLiveTableModel(QtCore.QAbstractTableModel):
   COL_NAMES = [QtCore.QVariant(u'ID'),
                QtCore.QVariant(u'タイトル'),
+               QtCore.QVariant(u'コミュID'),
                QtCore.QVariant(u'コミュ名'),
                QtCore.QVariant(u'生主'),
                QtCore.QVariant(u'来場数'),
                QtCore.QVariant(u'コメ数'),
                QtCore.QVariant(u'カテゴリ'),
                QtCore.QVariant(u'開始時刻')]
-  COL_KEYS = [u'live_id', u'title', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'time']
+  COL_KEYS = [u'live_id', u'title', u'com_id', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'time']
 
   RE_LF = re.compile(r'\r?\n')
 
-  COL_WATCHER_INDEX = 4
-  COL_COMMENT_INDEX = 5
+  COL_LIVE_ID_INDEX = 0
+  COL_COM_ID_INDEX = 2
+  COL_COM_NAME_INDEX = 3
+  COL_WATCHER_INDEX = 5
+  COL_COMMENT_INDEX = 6
 
   lock = threading.Lock()
 
@@ -108,8 +120,6 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
     QtCore.QAbstractTableModel.__init__(self, mainWindow)
     self.mainWindow = mainWindow
     self.datas = []
-    self.com_ids = []
-    self.com_names = []
 
   def rowCount(self, parent):
     return len(self.datas)
@@ -124,11 +134,12 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
       return QtCore.QVariant()
     return QtCore.QVariant(self.datas[index.row()][index.column()])
 
-  def com_id(self, row_no):
-    return self.com_ids[row_no]
+  def raw_row_data(self, row):
+    return self.datas[row]
 
-  def com_name(self, row_no):
-    return self.com_names[row_no]
+  def filter_id(self, row_no):
+    # com_idでフィルタリングする
+    return self.datas[row_no][self.COL_COM_ID_INDEX]
 
   def headerData(self, col, orientation, role):
     if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -184,8 +195,6 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
           else:
             row.append(QtCore.QVariant())
         self.datas.append(row)
-        self.com_ids.append(d['com_id'])
-        self.com_names.append(d['com_name'])
       #self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
       #self.mainWindow.trayIcon.showMessage(QtCore.QString(u'新着生放送'),
       #                                     QtCore.QString(d['title']))
@@ -193,47 +202,35 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
       self.endInsertRows()
       self.lock.release()
 
-class DicFilterProxyModel(QtGui.QSortFilterProxyModel):
+class FilterListProxyModel(QtGui.QSortFilterProxyModel):
   def __init__(self, mainWindow):
     QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
-    self.watchlist = mainWindow.watchlist
-    self.watchlistFilter = False
+    self.listFilter = False
 
   def filterAcceptsRow(self, source_row, source_parent):
-    dicTableModel = self.sourceModel()
-
-    cond = self.watchlistFilter and False in self.watchlist
-    for i in xrange(dicTableModel.columnCount(None)):
-      idx = dicTableModel.index(source_row, i, source_parent)
-      cond |= dicTableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
-
-    dic_id = dicTableModel.dic_id(source_row)
-    return cond and (not self.watchlistFilter or dic_id in self.watchlist.keys())
-
-  def setWatchlistFilter(self, bool):
-    self.watchlistFilter = bool
-    self.invalidateFilter()
-
-class LiveFilterProxyModel(QtGui.QSortFilterProxyModel):
-  def __init__(self, mainWindow):
-    QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
-    self.communityList = mainWindow.communityList
-    self.communityFilter = False
-
-  def filterAcceptsRow(self, source_row, source_parent):
-    liveTableModel = self.sourceModel()
+    tableModel = self.sourceModel()
 
     cond = False
-    for i in xrange(liveTableModel.columnCount(None)):
-      idx = liveTableModel.index(source_row, i, source_parent)
-      cond |= liveTableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
-    
-    com_id = liveTableModel.com_id(source_row)
-    return cond and (not self.communityFilter or com_id in self.communityList.keys())
+    for i in xrange(tableModel.columnCount(None)):
+      idx = tableModel.index(source_row, i, source_parent)
+      cond |= tableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
 
-  def setCommunityFilter(self, bool):
-    self.communityFilter = bool
+    filter_id = tableModel.filter_id(source_row)
+    return cond and (not self.listFilter or filter_id in self.list.keys())
+
+  def setListFilter(self, bool):
+    self.listFilter = bool
     self.invalidateFilter()
+
+class DicFilterProxyModel(FilterListProxyModel):
+  def __init__(self, mainWindow):
+    FilterListProxyModel.__init__(self, mainWindow)
+    self.list = mainWindow.watchlist
+
+class LiveFilterProxyModel(FilterListProxyModel):
+  def __init__(self, mainWindow):
+    FilterListProxyModel.__init__(self, mainWindow)
+    self.list = mainWindow.communityList
 
 class WatchlistTableModel(QtCore.QAbstractTableModel):
   COL_NAMES = [QtCore.QVariant(u'カテゴリ'),
@@ -399,12 +396,12 @@ class UserTabWidget(QtGui.QWidget):
 
   def handleContextMenu(self, point):
     tree_index = self.treeView.indexAt(point)
-    filterModel_index = self.filterModel.index(tree_index)
+    filterModel_index = self.filterModel.index(tree_index.row(), 0)
     tableModel_index = self.filterModel.mapToSource(filterModel_index)
 
     popup_menu = QtGui.QMenu(self)
     # サブクラスで実装する。
-    self.addContextMenuAction(self, popup_menu, tableModel_index)
+    self.addContextMenuAction(popup_menu, tableModel_index)
     popup_menu.exec_(self.treeView.mapToGlobal(point))
 
   def addTab(self):
@@ -412,13 +409,15 @@ class UserTabWidget(QtGui.QWidget):
     pass
 
   def keywordLineEditChanged(self):
-    # TODO: 検索キーワードの切り替え
-    pass
+    # 検索キーワードの切り替え
+    regex = QtCore.QRegExp(self.ui.keywordLineEdit.text(),
+                           QtCore.Qt.CaseInsensitive,
+                           QtCore.QRegExp.RegExp2)
+    self.filterModel.setFilterRegExp(regex)
 
   def listFilterCheckBoxToggled(self):
-    # TODO: filterの切り替え
-    pass
-
+    # ウォッチリスト/コミュニティリストでの絞込をするかどうか切り替え
+    self.filterModel.setListFilter(self.listFilterCheckBox.isChecked())
 
 class DicUserTabWidget(UserTabWidget):
   ICON_FILE_NAME = 'dic.ico'
@@ -433,11 +432,18 @@ class DicUserTabWidget(UserTabWidget):
     UserTabWidget.__init__(self, mainWindow)
 
     self.treeView.setModel(self.filterModel)
-    self.treeView.hideColumn(1) # 表示用じゃない記事名は隠す。
+    self.treeView.hideColumn(self.tableModel.COL_TITLE_INDEX) # 表示用じゃない記事名は隠す。
 
   def addContextMenuAction(self, menu, table_index):
-    # FIXME: implement
+    cat, title, view_title = \
+      map(lambda d: d.toString(),
+          self.tableModel.raw_row_data(table_index.row())[0:3])
+    url = 'http://dic.nicovideo.jp/%s/%s' % (cat, urllib.quote(title.toUtf8()))
+
     menu.addAction(u'記事/掲示板を見る', lambda: webbrowser.open(url))
+    menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
+    menu.addSeparator()
+    menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.addWatchlist(cat, title, view_title))
 
 class LiveUserTabWidget(UserTabWidget):
   ICON_FILE_NAME = 'live.ico'
@@ -452,10 +458,24 @@ class LiveUserTabWidget(UserTabWidget):
     UserTabWidget.__init__(self, mainWindow)
 
     self.treeView.setModel(self.filterModel)
+    self.treeView.hideColumn(self.tableModel.COL_COM_ID_INDEX) # 表示用じゃない記事名は隠す。
 
   def addContextMenuAction(self, menu, table_index):
     # FIXME: implement
     menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
+
+  def addContextMenuAction(self, menu, table_index):
+    # TODO: remove consts
+    row = self.tableModel.raw_row_data(table_index.row())
+    live_id = row[self.tableModel.COL_LIVE_ID_INDEX].toString()
+    com_id = row[self.tableModel.COL_COM_ID_INDEX].toString()
+    com_name = row[self.tableModel.COL_COM_NAME_INDEX].toString()
+    url = 'http://live.nicovideo.jp/watch/' + live_id
+
+    menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
+    menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
+    menu.addSeparator()
+    menu.addAction(u'コミュニティを通知対象にする', lambda: self.mainWindow.addCommunity(com_id, com_name))
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
@@ -478,39 +498,12 @@ class MainWindow(QtGui.QMainWindow):
     self.watchlist = self.settings['watchlist']
     self.communityList = self.settings['communityList']
 
-    # dicTreeView
-    self.dicTreeView = self.ui.dicTreeView
     self.dicTableModel = NicoDicTableModel(self)
     self.dicFilterModel = DicFilterProxyModel(self)
     self.dicFilterModel.setSourceModel(self.dicTableModel)
-    self.dicTreeView.setModel(self.dicFilterModel)
-    self.dicTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    self.dicTreeView.setColumnWidth(0, 80)
-    self.dicTreeView.setSortingEnabled(True)
-    self.dicTreeView.setRootIsDecorated(False)
-    self.dicTreeView.setAlternatingRowColors(True)
-    # 記事名カラムを隠す
-    self.dicTreeView.hideColumn(1)
-
-    self.connect(self.dicTreeView,
-                 QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
-                 self.dicTreeContextMenu)
-
-    # liveTreeView
-    self.liveTreeView = self.ui.liveTreeView
     self.liveTableModel = NicoLiveTableModel(self)
     self.liveFilterModel = LiveFilterProxyModel(self)
     self.liveFilterModel.setSourceModel(self.liveTableModel)
-    self.liveTreeView.setModel(self.liveFilterModel)
-    self.liveTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    self.liveTreeView.setColumnWidth(0, 80)
-    self.liveTreeView.setSortingEnabled(True)
-    self.liveTreeView.setRootIsDecorated(False)
-    self.liveTreeView.setAlternatingRowColors(True)
-
-    self.connect(self.liveTreeView,
-                 QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
-                 self.liveTreeContextMenu)
 
     # watchlistTreeView
     self.watchlistTreeView = self.ui.watchlistTreeView
@@ -548,24 +541,6 @@ class MainWindow(QtGui.QMainWindow):
     self.trayIcon.setIcon(self.trayIconImg)
     self.trayIcon.show()
 
-    # events
-    self.connect(self.ui.dicFilterPushButton, QtCore.SIGNAL('clicked()'),
-                 self.showDicFilter)
-    self.connect(self.ui.liveFilterPushButton, QtCore.SIGNAL('clicked()'),
-                 self.showLiveFilter)
-    self.connect(self.ui.dicKeywordLineEdit,
-                 QtCore.SIGNAL('textChanged(const QString &)'),
-                 self.dicKeywordLineEditChanged)
-    self.connect(self.ui.liveKeywordLineEdit,
-                 QtCore.SIGNAL('textChanged(const QString &)'),
-                 self.liveKeywordLineEditChanged)
-    self.connect(self.ui.dicWatchlistCheckBox,
-                 QtCore.SIGNAL('toggled(bool)'),
-                 self.dicWatchlistCheckBoxToggled)
-    self.connect(self.ui.liveCommunityCheckBox,
-                 QtCore.SIGNAL('toggled(bool)'),
-                 self.liveWatchlistCheckBoxToggled)
-
     # first data fetch
     self.nicopoll = NicoPoll(self.dicTableModel,
                              self.liveTableModel)
@@ -579,66 +554,6 @@ class MainWindow(QtGui.QMainWindow):
 
   def timer_handler(self):
     self.nicopoll.fetch()
-
-  def showDicFilter(self):
-    pass
-
-  def showLiveFilter(self):
-    pass
-
-  def dicKeywordLineEditChanged(self):
-    regex = QtCore.QRegExp(self.ui.dicKeywordLineEdit.text(),
-                           QtCore.Qt.CaseInsensitive,
-                           QtCore.QRegExp.RegExp2)
-    self.dicFilterModel.setFilterRegExp(regex)
-
-  def liveKeywordLineEditChanged(self):
-    regex = QtCore.QRegExp(self.ui.liveKeywordLineEdit.text(),
-                           QtCore.Qt.CaseInsensitive,
-                           QtCore.QRegExp.RegExp2)
-    self.liveFilterModel.setFilterRegExp(regex)
-
-  def dicWatchlistCheckBoxToggled(self):
-    self.dicFilterModel.setWatchlistFilter(self.ui.dicWatchlistCheckBox.isChecked())
-
-  def liveWatchlistCheckBoxToggled(self):
-    self.liveFilterModel.setCommunityFilter(self.ui.liveCommunityCheckBox.isChecked())
-
-  def dicTreeContextMenu(self, point):
-    tree_index = self.dicTreeView.indexAt(point)
-    dic_index = self.dicFilterModel.index(tree_index.row(), 0)
-    cat = self.dicFilterModel.data(dic_index).toString()
-    dic_index = self.dicFilterModel.index(tree_index.row(), 1)
-    title = self.dicFilterModel.data(dic_index).toString()
-    dic_index = self.dicFilterModel.index(tree_index.row(), 2)
-    view_title = self.dicFilterModel.data(dic_index).toString()
-
-    url = 'http://dic.nicovideo.jp/%s/%s' % (cat, urllib.quote(title.toUtf8()))
-
-    popup_menu = QtGui.QMenu(self)
-    popup_menu.addAction(u'記事/掲示板を見る', lambda: webbrowser.open(url))
-    popup_menu.addAction(u'URLをコピー', lambda: self.app.clipboard().setText(QtCore.QString(url)))
-    popup_menu.addSeparator()
-    popup_menu.addAction(u'ウォッチリストに追加', lambda: self.addWatchlist(cat, title, view_title))
-    popup_menu.exec_(self.dicTreeView.mapToGlobal(point))
-
-  def liveTreeContextMenu(self, point):
-    tree_index = self.liveTreeView.indexAt(point)
-    live_index = self.liveFilterModel.index(tree_index.row(), 0)
-    target_live_id = self.liveFilterModel.data(live_index).toString()
-
-    model_index = self.liveFilterModel.mapToSource(live_index)
-    com_id = self.liveTableModel.com_id(model_index.row())
-    com_name = self.liveTableModel.com_name(model_index.row())
-    url = 'http://live.nicovideo.jp/watch/' + target_live_id
-
-    popup_menu = QtGui.QMenu(self)
-    popup_menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
-    popup_menu.addAction(u'URLをコピー', lambda: self.app.clipboard().setText(QtCore.QString(url)))
-    popup_menu.addSeparator()
-    popup_menu.addAction(u'コミュニティを通知対象にする', lambda: self.addCommunity(com_id, com_name))
-    #popup_menu.addAction(u'主を通知対象にする')
-    popup_menu.exec_(self.liveTreeView.mapToGlobal(point))
 
   def addWatchlist(self, category, title, view_title):
     key = '%s%s' % (category, title)
