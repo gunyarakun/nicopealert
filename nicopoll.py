@@ -14,7 +14,6 @@ from datetime import datetime
 
 # polling sucks, but...
 
-
 class NicoPoll:
 
   # 生放送詳細情報を取得するキューサイズ

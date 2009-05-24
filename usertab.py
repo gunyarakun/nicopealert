@@ -1,9 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtCore, QtGui
-import webbrowser
 import urllib
+import webbrowser
+from PyQt4 import QtCore, QtGui
+
+from models import *
 
 class FilterListProxyModel(QtGui.QSortFilterProxyModel):
   def __init__(self, mainWindow):
@@ -260,11 +262,6 @@ class LiveUserTabWidget(UserTabWidget):
     self.treeView.hideColumn(self.tableModel.COL_COM_ID_INDEX) # 表示用じゃない記事名は隠す。
 
   def addContextMenuAction(self, menu, table_index):
-    # FIXME: implement
-    menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
-
-  def addContextMenuAction(self, menu, table_index):
-    # TODO: remove consts
     row = self.tableModel.raw_row_data(table_index.row())
     live_id = unicode(row[self.tableModel.COL_LIVE_ID_INDEX].toString())
     com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
@@ -278,3 +275,4 @@ class LiveUserTabWidget(UserTabWidget):
 
   def createTab(self):
     return LiveUserTabWidget(self.mainWindow, False)
+
