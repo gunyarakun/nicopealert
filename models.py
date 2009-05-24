@@ -12,7 +12,7 @@ class TableModel(QtCore.QAbstractTableModel):
   def __init__(self, mainWindow):
     QtCore.QAbstractTableModel.__init__(self, mainWindow)
     self.mainWindow = mainWindow
-    self.datas = []
+    self.datas = [] # データの配列
     self.lock = threading.Lock()
 
   def rowCount(self, parent):
@@ -48,7 +48,7 @@ class TableModel(QtCore.QAbstractTableModel):
         self.endRemoveRows()
     finally:
       self.lock.release()
-    return ret
+      return ret
 
   # これは独自メソッド。
   def raw_row_data(self, row):
@@ -63,7 +63,8 @@ class TableModel(QtCore.QAbstractTableModel):
       rowcount = len(self.datas)
       self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(items) - 1)
       try:
-        for i in items:
+        # TODO: kにはrecordを特定できるIDが入っている。
+        for k, i in items.items():
           row = []
           for key in self.COL_KEYS:
             item = QtGui.QStandardItem()
@@ -95,7 +96,7 @@ class NicoDicTableModel(TableModel):
   def filter_id(self, row_no):
     # categoryとtitleをくっつけたもの
     r = self.datas[row_no]
-    return u'%s%s' % (r[self.COL_CATEGORY_INDEX].toString(),
+    return u'/%s/%s' % (r[self.COL_CATEGORY_INDEX].toString(),
                       r[self.COL_TITLE_INDEX].toString())
 
 class NicoLiveTableModel(TableModel):
@@ -138,9 +139,7 @@ class NicoLiveTableModel(TableModel):
             lives[live_id]['comment_count'])
         else:
           # print 'live %s is deleted...' % (live_id)
-          # TODO: remove after!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          # self.removeRow(row)
-          pass
+          remove_list.append(live_id)
       st_index = self.index(0, self.COL_WATCHER_INDEX)
       ed_index = self.index(len(self.datas), self.COL_COMMENT_INDEX)
       self.dataChanged(st_index, ed_index)

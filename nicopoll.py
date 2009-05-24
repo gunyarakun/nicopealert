@@ -89,18 +89,18 @@ class NicoPoll:
     fetched_events = {}
     for p in events['pages']:
       p[u'time'] = datetime.fromtimestamp(p[u'time'])
-      key = u'%s/%s/%d' % (p[u'category'], p[u'title'], p[u'rev_no'])
+      key = u'/r/%s/%s/%d' % (p[u'category'], p[u'title'], p[u'rev_no'])
       fetched_events[key] = p
     for r in events['reses']:
       r[u'time'] = datetime.fromtimestamp(r[u'time'])
-      key = u'%s/%s/%d' % (r[u'category'], r[u'title'], r[u'res_no'])
+      key = u'/b/%s/%s/%d' % (r[u'category'], r[u'title'], r[u'res_no'])
       fetched_events[key] = r
 
     # 前回のと違うイベントだけをTableViewに通知
     new_keys = set(fetched_events.keys()) - set(self.dic_details.keys())
-    new_events = []
+    new_events = {}
     for k in new_keys:
-      new_events.append(fetched_events[k])
+      new_events[k] = fetched_events[k]
 
     self.dicTableModel.appendItems(new_events)
     self.dic_details.update(fetched_events)
@@ -127,7 +127,7 @@ class NicoPoll:
       detail[u'live_id'] = live_id
       detail[u'time'] = datetime.fromtimestamp(detail[u'time'])
     self.live_details.update(details)
-    self.liveTableModel.appendItems(details.values())
+    self.liveTableModel.appendItems(details)
 
   def fetch_live_detail_from_live_id(self, live_id, opener):
     url = 'http://dic.nicovideo.jp:2525/%s.json.gz' % live_id.encode('ascii')

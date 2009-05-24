@@ -5,7 +5,6 @@
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
 # TODO: なくなった生を削除する部分の復活。
-# TODO: ウォッチリスト/コミュニティリストの要素追加・削除
 
 # TODO: 検索条件の保存
 # TODO: カラムサイズ初期値設定
@@ -56,8 +55,8 @@ class MainWindow(QtGui.QMainWindow):
     self.liveTableModel = NicoLiveTableModel(self)
     self.watchListTableModel = WatchListTableModel(self)
     self.communityListTableModel = CommunityTableModel(self)
-    self.watchListTableModel.appendItems(self.settings['watchList'].values())
-    self.communityListTableModel.appendItems(self.settings['communityList'].values())
+    self.watchListTableModel.appendItems(self.settings['watchList'])
+    self.communityListTableModel.appendItems(self.settings['communityList'])
 
     # tab widget
     self.tabWidget = QtGui.QTabWidget(self.ui.centralwidget)
@@ -95,18 +94,18 @@ class MainWindow(QtGui.QMainWindow):
     self.nicopoll.fetch()
 
   def appendWatchList(self, category, title, view_title):
-    key = u'%s%s' % (category, title)
+    key = u'/%s/%s' % (category, title)
     i = {'category': category,
          'title': title,
          'view_title': view_title}
-    self.watchListTableModel.appendItems([i])
+    self.watchListTableModel.appendItems({key: i})
     self.settings['watchList'][key] = i
     self.saveSettings()
 
   def appendCommunityList(self, com_id, com_name):
     # NOTE: com_idはkeyにもvalueにも入っている。
     u = {'id': com_id, 'name': com_name}
-    self.communityListTableModel.appendItems([u])
+    self.communityListTableModel.appendItems({com_id: u})
     self.settings['communityList'][com_id] = u
     self.saveSettings()
 
