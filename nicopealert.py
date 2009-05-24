@@ -203,36 +203,6 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
       self.endInsertRows()
       self.lock.release()
 
-class FilterListProxyModel(QtGui.QSortFilterProxyModel):
-  def __init__(self, mainWindow):
-    QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
-    self.listFilter = False
-
-  def filterAcceptsRow(self, source_row, source_parent):
-    tableModel = self.sourceModel()
-
-    cond = False
-    for i in xrange(tableModel.columnCount(None)):
-      idx = tableModel.index(source_row, i, source_parent)
-      cond |= tableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
-
-    filter_id = tableModel.filter_id(source_row)
-    return cond and (not self.listFilter or filter_id in self.list.keys())
-
-  def setListFilter(self, bool):
-    self.listFilter = bool
-    self.invalidateFilter()
-
-class DicFilterProxyModel(FilterListProxyModel):
-  def __init__(self, mainWindow):
-    FilterListProxyModel.__init__(self, mainWindow)
-    self.list = mainWindow.watchlist
-
-class LiveFilterProxyModel(FilterListProxyModel):
-  def __init__(self, mainWindow):
-    FilterListProxyModel.__init__(self, mainWindow)
-    self.list = mainWindow.communityList
-
 class WatchlistTableModel(QtCore.QAbstractTableModel):
   COL_NAMES = [QtCore.QVariant(u'カテゴリ'),
                QtCore.QVariant(u'記事名'),
@@ -337,11 +307,7 @@ class MainWindow(QtGui.QMainWindow):
     self.communityList = self.settings['communityList']
 
     self.dicTableModel = NicoDicTableModel(self)
-    self.dicFilterModel = DicFilterProxyModel(self)
-    self.dicFilterModel.setSourceModel(self.dicTableModel)
     self.liveTableModel = NicoLiveTableModel(self)
-    self.liveFilterModel = LiveFilterProxyModel(self)
-    self.liveFilterModel.setSourceModel(self.liveTableModel)
 
     # watchlistTreeView
     self.watchlistTreeView = self.ui.watchlistTreeView

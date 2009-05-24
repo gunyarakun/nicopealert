@@ -5,6 +5,36 @@ from PyQt4 import QtCore, QtGui
 import webbrowser
 import urllib
 
+class FilterListProxyModel(QtGui.QSortFilterProxyModel):
+  def __init__(self, mainWindow):
+    QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
+    self.listFilter = False
+
+  def filterAcceptsRow(self, source_row, source_parent):
+    tableModel = self.sourceModel()
+
+    cond = False
+    for i in xrange(tableModel.columnCount(None)):
+      idx = tableModel.index(source_row, i, source_parent)
+      cond |= tableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
+
+    filter_id = tableModel.filter_id(source_row)
+    return cond and (not self.listFilter or filter_id in self.list.keys())
+
+  def setListFilter(self, bool):
+    self.listFilter = bool
+    self.invalidateFilter()
+
+class DicFilterProxyModel(FilterListProxyModel):
+  def __init__(self, mainWindow):
+    FilterListProxyModel.__init__(self, mainWindow)
+    self.list = mainWindow.watchlist
+
+class LiveFilterProxyModel(FilterListProxyModel):
+  def __init__(self, mainWindow):
+    FilterListProxyModel.__init__(self, mainWindow)
+    self.list = mainWindow.communityList
+
 class UserTabWidget(QtGui.QWidget):
   icon = None
 
@@ -192,7 +222,8 @@ class DicUserTabWidget(UserTabWidget):
 
   def __init__(self, mainWindow, initial = True):
     self.tableModel = mainWindow.dicTableModel
-    self.filterModel = mainWindow.dicFilterModel
+    self.filterModel = DicFilterProxyModel(mainWindow)
+    self.filterModel.setSourceModel(self.tableModel)
     UserTabWidget.__init__(self, mainWindow, initial)
 
     self.treeView.setModel(self.filterModel)
@@ -221,7 +252,8 @@ class LiveUserTabWidget(UserTabWidget):
 
   def __init__(self, mainWindow, initial = True):
     self.tableModel = mainWindow.liveTableModel
-    self.filterModel = mainWindow.liveFilterModel
+    self.filterModel = LiveFilterProxyModel(mainWindow)
+    self.filterModel.setSourceModel(self.tableModel)
     UserTabWidget.__init__(self, mainWindow, initial)
 
     self.treeView.setModel(self.filterModel)
