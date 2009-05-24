@@ -65,7 +65,8 @@ class NicoDicTableModel(QtCore.QAbstractTableModel):
 
   def filter_id(self, row_no):
     r = self.datas[row_no]
-    return u'%s%s' % (r[self.COL_CATEGORY_INDEX], r[self.COL_TITLE_INDEX])
+    return u'%s%s' % (r[self.COL_CATEGORY_INDEX].toString(),
+                      r[self.COL_TITLE_INDEX].toString())
 
   def headerData(self, col, orientation, role):
     if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -139,7 +140,7 @@ class NicoLiveTableModel(QtCore.QAbstractTableModel):
 
   def filter_id(self, row_no):
     # com_idでフィルタリングする
-    return self.datas[row_no][self.COL_COM_ID_INDEX]
+    return unicode(self.datas[row_no][self.COL_COM_ID_INDEX].toString())
 
   def headerData(self, col, orientation, role):
     if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -410,7 +411,7 @@ class UserTabWidget(QtGui.QWidget):
 
   def keywordLineEditChanged(self):
     # 検索キーワードの切り替え
-    regex = QtCore.QRegExp(self.ui.keywordLineEdit.text(),
+    regex = QtCore.QRegExp(self.keywordLineEdit.text(),
                            QtCore.Qt.CaseInsensitive,
                            QtCore.QRegExp.RegExp2)
     self.filterModel.setFilterRegExp(regex)
@@ -436,9 +437,9 @@ class DicUserTabWidget(UserTabWidget):
 
   def addContextMenuAction(self, menu, table_index):
     cat, title, view_title = \
-      map(lambda d: d.toString(),
+      map(lambda d: unicode(d.toString()),
           self.tableModel.raw_row_data(table_index.row())[0:3])
-    url = 'http://dic.nicovideo.jp/%s/%s' % (cat, urllib.quote(title.toUtf8()))
+    url = 'http://dic.nicovideo.jp/%s/%s' % (cat, urllib.quote(title.encode('utf-8')))
 
     menu.addAction(u'記事/掲示板を見る', lambda: webbrowser.open(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
@@ -467,9 +468,9 @@ class LiveUserTabWidget(UserTabWidget):
   def addContextMenuAction(self, menu, table_index):
     # TODO: remove consts
     row = self.tableModel.raw_row_data(table_index.row())
-    live_id = row[self.tableModel.COL_LIVE_ID_INDEX].toString()
-    com_id = row[self.tableModel.COL_COM_ID_INDEX].toString()
-    com_name = row[self.tableModel.COL_COM_NAME_INDEX].toString()
+    live_id = unicode(row[self.tableModel.COL_LIVE_ID_INDEX].toString())
+    com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
+    com_name = unicode(row[self.tableModel.COL_COM_NAME_INDEX].toString())
     url = 'http://live.nicovideo.jp/watch/' + live_id
 
     menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
