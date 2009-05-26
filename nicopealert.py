@@ -159,10 +159,9 @@ if __name__ == '__main__':
   import codecs # for debug
 
   app = QtGui.QApplication(sys.argv)
-  try:
-    mw = MainWindow(app)
-    mw.show()
-    ret = app.exec_()
-  finally:
-    mw.trayIcon.hide()
+
+  mw = MainWindow(app)
+  mw.show()
+  ret = app.exec_()
+  mw.trayIcon.hide()
   sys.exit(ret)

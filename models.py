@@ -22,6 +22,7 @@ class TableModel(QtCore.QAbstractTableModel):
     self.mainWindow = mainWindow
     self.datas = [] # データの配列
     self.lock = threading.Lock()
+    self.targetFilterModels = []
     self.notify = [False, False, False]
 
   def rowCount(self, parent):
@@ -59,6 +60,11 @@ class TableModel(QtCore.QAbstractTableModel):
       self.lock.release()
       return ret
 
+  # 各モデルは、QSortFilterProxyModelのソースとなるが、
+  # 逆マッピングを保存しておく。通知のため。
+  def addTargetFilterModel(self, model):
+    self.targetFilterModels.append(model)
+
   # これは独自メソッド。
   def raw_row_data(self, row):
     return self.datas[row]
@@ -87,19 +93,36 @@ class TableModel(QtCore.QAbstractTableModel):
             elif val is None:
               row.append(QtCore.QVariant())
           self.datas.append(row)
-          to_notify.append(row)
+          if self.filterForNotify(len(self.datas) - 1):
+            to_notify.append(row)
       finally:
         self.endInsertRows()
     finally:
       self.lock.release()
-    self.doNotify(to_notify)
+
+    self.doNotify(filter)
+
+  def filterWithFilterModel(self, row_no, filterModel):
+    # TODO: filter対象カラムを指定する。
+    cond = False
+    regex = filterModel.filterRegExp()
+    for col_no in xrange(0, len(self.COL_NAMES)):
+      cond |= self.datas[row_no][col_no].toString().contains(regex)
+    filter_id = self.filter_id(row_no)
+    return cond and (not filterModel.listFilter or \
+                     filter_id in filterModel.list.keys())
+
+  def filterForNotify(self, row_no):
+    cond = False
+    for fm in self.targetFilterModels:
+      cond |= self.filterWithFilterModel(row_no, fm)
+    return cond
 
   # 各種通知がON/OFFであるというお知らせがくる。
   def setNotify(self, type, bool):
     self.notify[type] = bool
 
   def doNotify(self, notify_list):
-    # TODO: すべてのFilterを通して、１つでもOKだったもの一覧を作る。
     if self.notify[self.NOTIFY_TRAY]:
       self.notifyTray(notify_list)
     if self.notify[self.NOTIFY_SOUND]:

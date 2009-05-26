@@ -15,14 +15,7 @@ class FilterListProxyModel(QtGui.QSortFilterProxyModel):
 
   def filterAcceptsRow(self, source_row, source_parent):
     tableModel = self.sourceModel()
-
-    cond = False
-    for i in xrange(tableModel.columnCount(None)):
-      idx = tableModel.index(source_row, i, source_parent)
-      cond |= tableModel.data(idx, QtCore.Qt.DisplayRole).toString().contains(self.filterRegExp())
-
-    filter_id = tableModel.filter_id(source_row)
-    return cond and (not self.listFilter or filter_id in self.list.keys())
+    return tableModel.filterWithFilterModel(source_row, self)
 
   def setListFilter(self, bool):
     self.listFilter = bool
