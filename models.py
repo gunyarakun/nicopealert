@@ -23,7 +23,6 @@ class TableModel(QtCore.QAbstractTableModel):
     self.datas = [] # データの配列
     self.lock = threading.Lock()
     self.targetFilterModels = []
-    self.notify = [False, False, False]
 
   def rowCount(self, parent):
     return len(self.datas)
@@ -74,7 +73,7 @@ class TableModel(QtCore.QAbstractTableModel):
     if len(items) == 0:
       return
     self.lock.acquire()
-    to_notify = []
+    to_notify = [[], [], []]
     try:
       rowcount = len(self.datas)
       self.beginInsertRows(QtCore.QModelIndex(), rowcount, rowcount + len(items) - 1)
@@ -93,14 +92,12 @@ class TableModel(QtCore.QAbstractTableModel):
             elif val is None:
               row.append(QtCore.QVariant())
           self.datas.append(row)
-          if self.filterForNotify(len(self.datas) - 1):
-            to_notify.append(row)
+          self.checkAndAddNotifyList(len(self.datas) - 1, to_notify)
       finally:
         self.endInsertRows()
+      self.doNotify(to_notify)
     finally:
       self.lock.release()
-
-    self.doNotify(filter)
 
   def filterWithFilterModel(self, row_no, filterModel):
     # TODO: filter対象カラムを指定する。
@@ -112,23 +109,25 @@ class TableModel(QtCore.QAbstractTableModel):
     return cond and (not filterModel.listFilter or \
                      filter_id in filterModel.list.keys())
 
-  def filterForNotify(self, row_no):
-    cond = False
+  def checkAndAddNotifyList(self, row_no, to_notify):
+    n = [False, False, False]
     for fm in self.targetFilterModels:
-      cond |= self.filterWithFilterModel(row_no, fm)
-    return cond
+      cond = self.filterWithFilterModel(row_no, fm)
+      if cond:
+        for i in xrange(0, 3): # TODO: remove const
+          if fm.notify[i]:
+            n[i] = True
+    for i in xrange(0, 3): # TODO: remove const
+      if n[i]:
+        to_notify[i].append(row_no)
 
-  # 各種通知がON/OFFであるというお知らせがくる。
-  def setNotify(self, type, bool):
-    self.notify[type] = bool
-
-  def doNotify(self, notify_list):
-    if self.notify[self.NOTIFY_TRAY]:
-      self.notifyTray(notify_list)
-    if self.notify[self.NOTIFY_SOUND]:
+  def doNotify(self, to_notify):
+    if to_notify[self.NOTIFY_TRAY]:
+      self.notifyTray(to_notify[self.NOTIFY_TRAY])
+    if to_notify[self.NOTIFY_SOUND]:
       QtGui.QSound.play('event.wav')
-    if self.notify[self.NOTIFY_BROWSER]:
-      self.notifyBrowser(notify_list)
+    if to_notify[self.NOTIFY_BROWSER]:
+      self.notifyBrowser(to_notify[self.NOTIFY_BROWSER])
 
   def notifyTray(self, notify_list):
     pass
@@ -154,14 +153,14 @@ class NicoDicTableModel(TableModel):
                         r[self.COL_TITLE_INDEX].toString())
 
   def notifyTray(self, notify_list):
-    vtitles = '\n'.join([unicode(x[2].toString()) for x in notify_list])
+    vtitles = '\n'.join([unicode(self.datas[x][2].toString()) for x in notify_list])
     self.mainWindow.trayIcon.showMessage(self.trUtf8('新着大百科'), vtitles)
 
   def notifyBrowser(self, notify_list):
     map(webbrowser.open,
         ['http://dic.nicovideo.jp/%s/%s' % 
-          (n[self.COL_CATEGORY_INDEX].toString(),
-           n[self.COL_TITLE_INDEX].toString()) for n in notify_list])
+          (self.datas[n][self.COL_CATEGORY_INDEX].toString(),
+           self.datas[n][self.COL_TITLE_INDEX].toString()) for n in notify_list])
 
 class NicoLiveTableModel(TableModel):
   COL_NAMES = [QtCore.QVariant(u'ID'),
@@ -187,13 +186,13 @@ class NicoLiveTableModel(TableModel):
     return unicode(self.datas[row_no][self.COL_COM_ID_INDEX].toString())
 
   def notifyTray(self, notify_list):
-    vtitles = '\n'.join([unicode(x[self.COL_TITLE_INDEX].toString())
+    vtitles = '\n'.join([unicode(self.datas[x][self.COL_TITLE_INDEX].toString())
                          for x in notify_list])
     self.mainWindow.trayIcon.showMessage(self.trUtf8('新着生放送'), vtitles)
 
   def notifyBrowser(self, notify_list):
     map(webbrowser.open,
-        ['http://live.nicovideo.jp/watch/%s' % n[self.COL_LIVE_ID_INDEX].toString()
+        ['http://live.nicovideo.jp/watch/%s' % self.datas[n][self.COL_LIVE_ID_INDEX].toString()
          for n in notify_list])
 
   def current_lives(self, lives):

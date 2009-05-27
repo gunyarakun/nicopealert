@@ -12,6 +12,7 @@ class FilterListProxyModel(QtGui.QSortFilterProxyModel):
   def __init__(self, mainWindow):
     QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
     self.listFilter = False
+    self.notify = [False, False, False]
 
   def filterAcceptsRow(self, source_row, source_parent):
     tableModel = self.sourceModel()
@@ -20,6 +21,14 @@ class FilterListProxyModel(QtGui.QSortFilterProxyModel):
   def setListFilter(self, bool):
     self.listFilter = bool
     self.invalidateFilter()
+
+  # 各種通知がON/OFFであるというお知らせがくる。
+  def setNotify(self, type, bool):
+    self.notify[type] = bool
+
+  # NOTE: Notifyの実処理を各filterModelで行わないのはなぜか。
+  # それは、同じitemに対する通知が複数行われるとウザいからである。
+  # 複数のfilterにひっかかっても、通知はまとめたいからね。
 
 class DicFilterProxyModel(FilterListProxyModel):
   def __init__(self, mainWindow):
@@ -45,6 +54,8 @@ class UserTabWidget(QtGui.QWidget):
     self.tabWidget = tabWidget
     QtGui.QWidget.__init__(self, tabWidget)
 
+    self.tableModel.addTargetFilterModel(self.filterModel)
+
     sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
     sizePolicy.setHorizontalStretch(0)
     sizePolicy.setVerticalStretch(0)
@@ -62,8 +73,8 @@ class UserTabWidget(QtGui.QWidget):
       self.trayNotifyCheckBox.setText(self.trUtf8('文'))
       self.connect(self.trayNotifyCheckBox,
                    QtCore.SIGNAL('toggled(bool)'),
-                   lambda: self.tableModel.setNotify(self.tableModel.NOTIFY_TRAY,
-                                                     self.trayNotifyCheckBox.isChecked()))
+                   lambda: self.filterModel.setNotify(self.tableModel.NOTIFY_TRAY,
+                                                      self.trayNotifyCheckBox.isChecked()))
       horizontalLayout.addWidget(self.trayNotifyCheckBox)
 
       # 音
@@ -71,8 +82,8 @@ class UserTabWidget(QtGui.QWidget):
       self.soundNotifyCheckBox.setText(self.trUtf8('音'))
       self.connect(self.soundNotifyCheckBox,
                    QtCore.SIGNAL('toggled(bool)'),
-                   lambda: self.tableModel.setNotify(self.tableModel.NOTIFY_SOUND,
-                                                     self.trayNotifyCheckBox.isChecked()))
+                   lambda: self.filterModel.setNotify(self.tableModel.NOTIFY_SOUND,
+                                                      self.trayNotifyCheckBox.isChecked()))
       horizontalLayout.addWidget(self.soundNotifyCheckBox)
 
       # 自動open
@@ -80,8 +91,8 @@ class UserTabWidget(QtGui.QWidget):
       self.browserNotifyCheckBox.setText(self.trUtf8('ブラ'))
       self.connect(self.browserNotifyCheckBox,
                    QtCore.SIGNAL('toggled(bool)'),
-                   lambda: self.tableModel.setNotify(self.tableModel.NOTIFY_BROWSER,
-                                                     self.trayNotifyCheckBox.isChecked()))
+                   lambda: self.filterModel.setNotify(self.tableModel.NOTIFY_BROWSER,
+                                                      self.trayNotifyCheckBox.isChecked()))
       horizontalLayout.addWidget(self.browserNotifyCheckBox)
 
     # 横スペーサ
