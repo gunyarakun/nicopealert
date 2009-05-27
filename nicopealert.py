@@ -4,8 +4,6 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: タブごとの通知
-# TODO: インストーラ経由だと、アイコンが出ない
 # TODO: 最小化時に、トレイアイコンのみにする
 # TODO: 生放送タブのstretchポリシー見直し
 # TODO: 生放送タブのフリッカー防止
@@ -73,11 +71,12 @@ class MainWindow(QtGui.QMainWindow):
     # trayIcon/trayIconMenu/trayIconImg
     self.trayIconImg = QtGui.QIcon(self.tr(':/dic.ico'))
     self.trayIconMenu = QtGui.QMenu(self)
-    # self.trayIconMenu.addAction(u'終了')
+    self.trayIconMenu.addAction(u'終了', lambda: self.app.quit())
     self.trayIcon = QtGui.QSystemTrayIcon(self)
     self.trayIcon.setContextMenu(self.trayIconMenu)
     self.trayIcon.setIcon(self.trayIconImg)
     self.trayIcon.show()
+    self.connect(self.trayIcon, QtCore.SIGNAL('activated(QSystemTrayIcon::ActivationReason)'), self.trayIconHandler)
 
     # first data fetch
     self.nicopoll = NicoPoll(self.dicTableModel,
@@ -104,6 +103,10 @@ class MainWindow(QtGui.QMainWindow):
 
   def timer_handler(self):
     self.nicopoll.fetch()
+
+  def trayIconHandler(self):
+    # FIXME: implement!!!
+    print 'trayIcon'
 
   def appendWatchList(self, category, title, view_title):
     key = u'/%s/%s' % (category, title)
