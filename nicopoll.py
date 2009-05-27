@@ -137,7 +137,7 @@ class NicoPoll:
       print "*http url error* url: %s reason: %s" % (url, e.reason)
       return None
     except zlib.error, e:
-      print "*zlib extract error* url: %s message: %s" % (url, e.message)
+      print "*zlib extract error* url: %s message: %s" % (url, str(e))
       return None
 
   def fetch_live_detail_from_live_id(self, live_id, opener):
