@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nicopealert.ui'
 #
-# Created: Sun May 24 12:53:36 2009
+# Created: Wed May 27 09:36:53 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -14,7 +14,7 @@ class Ui_MainWindow(object):
     MainWindow.setObjectName("MainWindow")
     MainWindow.resize(708, 458)
     icon = QtGui.QIcon()
-    icon.addPixmap(QtGui.QPixmap("dic.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+    icon.addPixmap(QtGui.QPixmap(":/dic.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
     MainWindow.setWindowIcon(icon)
     self.centralwidget = QtGui.QWidget(MainWindow)
     self.centralwidget.setObjectName("centralwidget")
@@ -39,6 +39,7 @@ class Ui_MainWindow(object):
     MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "ニコ百アラート", None, QtGui.QApplication.UnicodeUTF8))
     self.menu.setTitle(QtGui.QApplication.translate("MainWindow", "ファイル", None, QtGui.QApplication.UnicodeUTF8))
 
+import nicopealert_rc
 
 if __name__ == "__main__":
   import sys

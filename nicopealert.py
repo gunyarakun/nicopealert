@@ -71,7 +71,7 @@ class MainWindow(QtGui.QMainWindow):
     self.tabWidget.setCurrentIndex(0)
 
     # trayIcon/trayIconMenu/trayIconImg
-    self.trayIconImg = QtGui.QIcon(self.tr('dic.ico'))
+    self.trayIconImg = QtGui.QIcon(self.tr(':/dic.ico'))
     self.trayIconMenu = QtGui.QMenu(self)
     # self.trayIconMenu.addAction(u'終了')
     self.trayIcon = QtGui.QSystemTrayIcon(self)
@@ -159,9 +159,9 @@ if __name__ == '__main__':
   import codecs # for debug
 
   app = QtGui.QApplication(sys.argv)
-
   mw = MainWindow(app)
   mw.show()
   ret = app.exec_()
   mw.trayIcon.hide()
+  resource.qCleanupResources()
   sys.exit(ret)
