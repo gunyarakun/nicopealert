@@ -46,7 +46,8 @@ class NicoPoll:
 
   # not thread safe
   def fetch(self):
-    if self.first:
+    first = self.first
+    if first:
       url = 'http://dic.nicovideo.jp:2525/nicopealert-full.json.gz'
     else:
       url = 'http://dic.nicovideo.jp:2525/nicopealert.json.gz'
