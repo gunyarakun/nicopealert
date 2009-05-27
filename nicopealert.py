@@ -163,5 +163,4 @@ if __name__ == '__main__':
   mw.show()
   ret = app.exec_()
   mw.trayIcon.hide()
-  resource.qCleanupResources()
   sys.exit(ret)
