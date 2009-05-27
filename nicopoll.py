@@ -108,7 +108,7 @@ class NicoPoll:
       try:
         live_id = self.live_detail_fetch_queue.get(False) # non-blocking
         self.fetch_live_detail_from_live_id(live_id, opener)
-        time.sleep(0.1)
+        time.sleep(0.5)
       except Queue.Empty:
         # TODO: error handling
         time.sleep(2)
@@ -137,7 +137,7 @@ class NicoPoll:
       print "*http url error* url: %s reason: %s" % (url, e.reason)
       return None
     except zlib.error, e:
-      print "*zlib extract error* url: %s msg: %s" % (live_id, e.msg)
+      print "*zlib extract error* url: %s message: %s" % (url, e.message)
       return None
 
   def fetch_live_detail_from_live_id(self, live_id, opener):
