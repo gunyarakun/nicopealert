@@ -46,9 +46,7 @@ class NicoPoll:
 
   # not thread safe
   def fetch(self):
-    first = self.first
-    self.first = False
-    if first:
+    if self.first:
       url = 'http://dic.nicovideo.jp:2525/nicopealert-full.json.gz'
     else:
       url = 'http://dic.nicovideo.jp:2525/nicopealert.json.gz'
@@ -56,6 +54,7 @@ class NicoPoll:
     events = self.fetch_json_gz(self.opener, url)
     if events is None:
       return
+    self.first = False
 
     self.check_new_dic_events(events)
     current_lives = events['lives']
@@ -149,8 +148,8 @@ class NicoPoll:
     else:
       if not self.fetch_error_count.has_key(live_id):
         self.fetch_error_count[live_id] = 0
-      fetch_error_count[live_id] += 1
-      if fetch_error_count[live_id] > self.FETCH_ERROR_THRESHOLD:
+      self.fetch_error_count[live_id] += 1
+      if self.fetch_error_count[live_id] > self.FETCH_ERROR_THRESHOLD:
         print 'live detail fetch failed for %s.' % live_id
         self.liveid_queued_set.discard(live_id)
       else:
