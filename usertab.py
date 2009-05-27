@@ -88,7 +88,7 @@ class UserTabWidget(QtGui.QWidget):
 
       # 自動open
       self.browserNotifyCheckBox = QtGui.QCheckBox(self)
-      self.browserNotifyCheckBox.setText(self.trUtf8('ブラ'))
+      self.browserNotifyCheckBox.setText(self.trUtf8('閲'))
       self.connect(self.browserNotifyCheckBox,
                    QtCore.SIGNAL('toggled(bool)'),
                    lambda: self.filterModel.setNotify(self.tableModel.NOTIFY_BROWSER,
@@ -208,10 +208,12 @@ class UserTabWidget(QtGui.QWidget):
     keyword = self.keywordLineEdit.text()
     if self.EVENT_TAB:
       # 現在の条件で新しいタブを作り、そこにフォーカスをうつす。
-      check = self.listFilterCheckBox.isChecked()
       newtab = self.createTab()
+      newtab.trayNotifyCheckBox.setChecked(self.trayNotifyCheckBox.isChecked())
+      newtab.soundNotifyCheckBox.setChecked(self.soundNotifyCheckBox.isChecked())
+      newtab.browserNotifyCheckBox.setChecked(self.browserNotifyCheckBox.isChecked())
       newtab.keywordLineEdit.setText(keyword)
-      newtab.listFilterCheckBox.setChecked(check)
+      newtab.listFilterCheckBox.setChecked(self.listFilterCheckBox.isChecked())
       self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(newtab))
       self.clearCond()
       newtab.init_after_show()
@@ -222,6 +224,9 @@ class UserTabWidget(QtGui.QWidget):
       self.keywordLineEdit.setText('')
 
   def clearCond(self):
+    self.trayNotifyCheckBox.setChecked(False)
+    self.soundNotifyCheckBox.setChecked(False)
+    self.browserNotifyCheckBox.setChecked(False)
     self.keywordLineEdit.setText('')
     self.listFilterCheckBox.setChecked(False)
 
