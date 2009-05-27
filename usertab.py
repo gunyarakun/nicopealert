@@ -278,7 +278,7 @@ class UserTabWidget(QtGui.QWidget):
 
 class DicUserTabWidget(UserTabWidget):
   EVENT_TAB = True
-  ICON_FILE_NAME = 'dic.ico'
+  ICON_FILE_NAME = ':/dic.ico'
   DEFAULT_TAB_TEXT = '大百科'
   TAB_TOOL_TIP = 'ニコニコ大百科のイベント一覧です。'
   LIST_FILTER_CHECKBOX_TEXT = 'ウォッチリストで絞る'
@@ -320,7 +320,7 @@ class DicUserTabWidget(UserTabWidget):
 
 class LiveUserTabWidget(UserTabWidget):
   EVENT_TAB = True
-  ICON_FILE_NAME = 'live.ico'
+  ICON_FILE_NAME = ':/live.ico'
   DEFAULT_TAB_TEXT = '生放送'
   TAB_TOOL_TIP = 'ニコニコ生放送のイベント一覧です。'
   LIST_FILTER_CHECKBOX_TEXT = 'コミュニティリストで絞る'
@@ -371,7 +371,7 @@ class LiveUserTabWidget(UserTabWidget):
 
 class WatchListUserTabWidget(UserTabWidget):
   EVENT_TAB = False
-  ICON_FILE_NAME = 'dic.ico'
+  ICON_FILE_NAME = ':/dic.ico'
   DEFAULT_TAB_TEXT = 'ウォッチリスト'
   TAB_TOOL_TIP = 'イベントを知りたい大百科の記事一覧です。'
   LINE_EDIT_LABEL = '追加したい記事のURL'
@@ -412,7 +412,7 @@ class WatchListUserTabWidget(UserTabWidget):
 
 class CommunityListUserTabWidget(UserTabWidget):
   EVENT_TAB = False
-  ICON_FILE_NAME = 'live.ico'
+  ICON_FILE_NAME = ':/live.ico'
   DEFAULT_TAB_TEXT = 'コミュリスト'
   TAB_TOOL_TIP = 'イベントを知りたいコミュニティの一覧です。'
   LINE_EDIT_LABEL = '追加したいコミュニティ(空白区切り)'
