@@ -6,6 +6,11 @@
 
 # TODO: QSystemSemaphoreを使った複数起動防止
 # TODO: 最小化時に、トレイアイコンのみにする
+# TODO: サーバサイド、終わった生放送が出続ける
+# TODO: サーバクライアント、feedにバージョン情報とURLを入れる。
+# TODO: バージョン情報は必ず読める形式にする。
+# TODO: update URLの表示機能。
+# TODO: あるバージョン以下は強制起動禁止
 # TODO: 生放送タブのstretchポリシー見直し
 # TODO: 検索条件の保存
 # TODO: 新着イベントでタブ色変更
