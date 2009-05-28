@@ -8,38 +8,6 @@ from PyQt4 import QtCore, QtGui
 
 from models import *
 
-class FilterListProxyModel(QtGui.QSortFilterProxyModel):
-  def __init__(self, mainWindow):
-    QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
-    self.listFilter = False
-    self.notify = [False, False, False]
-
-  def filterAcceptsRow(self, source_row, source_parent):
-    tableModel = self.sourceModel()
-    return tableModel.filterWithFilterModel(source_row, self)
-
-  def setListFilter(self, bool):
-    self.listFilter = bool
-    self.invalidateFilter()
-
-  # 各種通知がON/OFFであるというお知らせがくる。
-  def setNotify(self, type, bool):
-    self.notify[type] = bool
-
-  # NOTE: Notifyの実処理を各filterModelで行わないのはなぜか。
-  # それは、同じitemに対する通知が複数行われるとウザいからである。
-  # 複数のfilterにひっかかっても、通知はまとめたいからね。
-
-class DicFilterProxyModel(FilterListProxyModel):
-  def __init__(self, mainWindow):
-    FilterListProxyModel.__init__(self, mainWindow)
-    self.list = mainWindow.settings['watchList']
-
-class LiveFilterProxyModel(FilterListProxyModel):
-  def __init__(self, mainWindow):
-    FilterListProxyModel.__init__(self, mainWindow)
-    self.list = mainWindow.settings['communityList']
-
 class UserTabWidget(QtGui.QWidget):
   icon = None
 

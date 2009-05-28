@@ -10,6 +10,38 @@ from PyQt4 import QtCore, QtGui
 import urllib
 import webbrowser
 
+class FilterListProxyModel(QtGui.QSortFilterProxyModel):
+  def __init__(self, mainWindow):
+    QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
+    self.listFilter = False
+    self.notify = [False, False, False]
+
+  def filterAcceptsRow(self, source_row, source_parent):
+    tableModel = self.sourceModel()
+    return tableModel.filterWithFilterModel(source_row, self)
+
+  def setListFilter(self, bool):
+    self.listFilter = bool
+    self.invalidateFilter()
+
+  # 各種通知がON/OFFであるというお知らせがくる。
+  def setNotify(self, type, bool):
+    self.notify[type] = bool
+
+  # NOTE: Notifyの実処理を各filterModelで行わないのはなぜか。
+  # それは、同じitemに対する通知が複数行われるとウザいからである。
+  # 複数のfilterにひっかかっても、通知はまとめたいからね。
+
+class DicFilterProxyModel(FilterListProxyModel):
+  def __init__(self, mainWindow):
+    FilterListProxyModel.__init__(self, mainWindow)
+    self.list = mainWindow.settings['watchList']
+
+class LiveFilterProxyModel(FilterListProxyModel):
+  def __init__(self, mainWindow):
+    FilterListProxyModel.__init__(self, mainWindow)
+    self.list = mainWindow.settings['communityList']
+
 class TableModel(QtCore.QAbstractTableModel):
   RE_LF = re.compile(r'\r?\n')
 
@@ -92,7 +124,8 @@ class TableModel(QtCore.QAbstractTableModel):
             elif val is None:
               row.append(QtCore.QVariant())
           self.datas.append(row)
-          self.checkAndAddNotifyList(len(self.datas) - 1, to_notify)
+          if self.FILTER_AND_NOTIFY:
+            self.checkAndAddNotifyList(len(self.datas) - 1, to_notify)
       finally:
         self.endInsertRows()
       self.doNotify(to_notify)
@@ -105,9 +138,11 @@ class TableModel(QtCore.QAbstractTableModel):
     regex = filterModel.filterRegExp()
     for col_no in xrange(0, len(self.COL_NAMES)):
       cond |= self.datas[row_no][col_no].toString().contains(regex)
-    filter_id = self.filter_id(row_no)
-    return cond and (not filterModel.listFilter or \
-                     filter_id in filterModel.list.keys())
+    if filterModel.listFilter:
+      filter_id = self.filter_id(row_no)
+      return cond and filter_id in filterModel.list.keys()
+    else:
+      return cond
 
   def checkAndAddNotifyList(self, row_no, to_notify):
     n = [False, False, False]
@@ -146,6 +181,8 @@ class NicoDicTableModel(TableModel):
   COL_CATEGORY_INDEX = 0
   COL_TITLE_INDEX = 1
 
+  FILTER_AND_NOTIFY = True
+
   def filter_id(self, row_no):
     # categoryとtitleをくっつけたもの
     r = self.datas[row_no]
@@ -180,6 +217,8 @@ class NicoLiveTableModel(TableModel):
   COL_COM_NAME_INDEX = 3
   COL_WATCHER_INDEX = 5
   COL_COMMENT_INDEX = 6
+
+  FILTER_AND_NOTIFY = True
 
   def filter_id(self, row_no):
     # com_idでフィルタリングする
@@ -241,6 +280,8 @@ class WatchListTableModel(TableModel):
                QtCore.QVariant(u'表示用記事名')]
   COL_KEYS = [u'category', u'title', u'view_title']
 
+  FILTER_AND_NOTIFY = False
+
 class CommunityTableModel(TableModel):
   COL_NAMES = [QtCore.QVariant(u'コミュID'),
                QtCore.QVariant(u'コミュ名')]
@@ -248,3 +289,6 @@ class CommunityTableModel(TableModel):
 
   COL_COM_ID_INDEX = 0
   COL_COM_NAME_INDEX = 0
+
+  FILTER_AND_NOTIFY = False
+
