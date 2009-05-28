@@ -124,7 +124,7 @@ class NicoPoll:
     # print "fetch url:%s" % url
     try:
       jsonbz2 = opener.open(url).read()
-      jsonstr = bz2.decompress(jsonbz2, 15, 65535)
+      jsonstr = bz2.decompress(jsonbz2)
 
       return json.JSONDecoder().decode(jsonstr)
     except urllib2.HTTPError, e:
@@ -136,7 +136,7 @@ class NicoPoll:
       time.sleep(600)
       print "*http url error* url: %s reason: %s" % (url, e.reason)
       return None
-    except bz2.error, e:
+    except Exception, e:
       print "*bzip2 extract error* url: %s message: %s" % (url, str(e))
       return None
 
