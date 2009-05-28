@@ -43,6 +43,7 @@ class MainWindow(QtGui.QMainWindow):
     self.sem = QtCore.QSystemSemaphore('nicopealert-app', 1)
     self.sem.acquire()
     self.firstApp = True
+    self.inited = False
 
   def __init__(self, app):
     self.firstApp = False
@@ -115,15 +116,19 @@ class MainWindow(QtGui.QMainWindow):
 
   def show(self):
     QtGui.QMainWindow.show(self)
+    self.activateWindow()
 
-    # タブの見た目関係初期化
-    for i in xrange(0, self.tabWidget.count()):
-      w = self.tabWidget.widget(i)
-      w.init_after_show()
+    if not self.inited:
+      # タブの見た目関係初期化
+      for i in xrange(0, self.tabWidget.count()):
+        w = self.tabWidget.widget(i)
+        w.init_after_show()
 
-    # データ挿入
-    self.watchListTableModel.appendItems(self.settings['watchList'])
-    self.communityListTableModel.appendItems(self.settings['communityList'])
+      # データ挿入
+      self.watchListTableModel.appendItems(self.settings['watchList'])
+      self.communityListTableModel.appendItems(self.settings['communityList'])
+
+      self.inited = True
 
   def timer_handler(self):
     self.nicopoll.fetch()
