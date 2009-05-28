@@ -4,11 +4,11 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: サーバサイド、終わった生放送が出続ける
 # TODO: サーバクライアント、feedにバージョン情報とURLを入れる。
 # TODO: バージョン情報は必ず読める形式にする。
-# TODO: update URLの表示機能。
 # TODO: あるバージョン以下は強制起動禁止
+# TODO: サーバサイド、終わった生放送が出続ける
+# TODO: update URLの表示機能。
 # TODO: 生放送タブのstretchポリシー見直し
 # TODO: 検索条件の保存
 # TODO: 新着イベントでタブ色変更
