@@ -4,7 +4,6 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: 最小化時に、トレイアイコンのみにする
 # TODO: サーバサイド、終わった生放送が出続ける
 # TODO: サーバクライアント、feedにバージョン情報とURLを入れる。
 # TODO: バージョン情報は必ず読める形式にする。
@@ -109,6 +108,9 @@ class MainWindow(QtGui.QMainWindow):
     self.timer.setInterval(self.POLLING_DURATION)
     self.timer.start()
 
+    # window style
+    self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowMinimizeButtonHint)
+
   def show(self):
     QtGui.QMainWindow.show(self)
 
@@ -124,9 +126,12 @@ class MainWindow(QtGui.QMainWindow):
   def timer_handler(self):
     self.nicopoll.fetch()
 
-  def trayIconHandler(self):
-    # FIXME: implement!!!
-    print 'trayIcon'
+  def trayIconHandler(self, reason):
+    if reason == QtGui.QSystemTrayIcon.Trigger:
+      if self.isVisible():
+        self.hide()
+      else:
+        self.show()
 
   def appendWatchList(self, category, title, view_title):
     key = u'/%s/%s' % (category, title)
@@ -176,6 +181,11 @@ class MainWindow(QtGui.QMainWindow):
       os.rename(tmpfilename, self.SETTINGS_FILE_NAME)
     except:
       pass
+
+  def closeEvent(self, event):
+    # ×ボタンで、タスクトレイバーのみになる
+    self.hide()
+    event.ignore()
 
 if __name__ == '__main__':
   import sys
