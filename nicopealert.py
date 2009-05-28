@@ -4,7 +4,6 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: QSystemSemaphoreを使った複数起動防止
 # TODO: 最小化時に、トレイアイコンのみにする
 # TODO: サーバサイド、終わった生放送が出続ける
 # TODO: サーバクライアント、feedにバージョン情報とURLを入れる。
@@ -27,6 +26,7 @@
 
 import os # for os.rename
 import cPickle as pickle
+import threading # for semaphore check
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
 
@@ -38,7 +38,21 @@ class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
   SETTINGS_FILE_NAME = 'nicopealert.dat'
 
+  def checkSemaphore(self):
+    self.sem = QtCore.QSystemSemaphore('nicopealert-app', 1)
+    self.sem.acquire()
+    self.firstApp = True
+
   def __init__(self, app):
+    self.firstApp = False
+
+    t = threading.Thread(target = self.checkSemaphore)
+    t.start()
+    t.join(0.2)
+
+    if not self.firstApp:
+      sys.exit(1)
+
     QtGui.QDialog.__init__(self)
     self.app = app
 
@@ -169,7 +183,10 @@ if __name__ == '__main__':
 
   app = QtGui.QApplication(sys.argv)
   mw = MainWindow(app)
-  mw.show()
-  ret = app.exec_()
-  mw.trayIcon.hide()
+  try:
+    mw.show()
+    ret = app.exec_()
+  finally:
+    mw.trayIcon.hide()
+    mw.sem.release()
   sys.exit(ret)
