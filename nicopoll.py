@@ -7,7 +7,7 @@ import urllib2
 import Queue
 import threading
 import time # for sleep
-import zlib
+import bz2
 import StringIO
 import json
 from datetime import datetime
@@ -48,11 +48,11 @@ class NicoPoll:
   def fetch(self):
     first = self.first
     if first:
-      url = 'http://dic.nicovideo.jp:2525/nicopealert-full.json.gz'
+      url = 'http://dic.nicovideo.jp:2525/nicopealert-full.json.bz2'
     else:
-      url = 'http://dic.nicovideo.jp:2525/nicopealert.json.gz'
+      url = 'http://dic.nicovideo.jp:2525/nicopealert.json.bz2'
 
-    events = self.fetch_json_gz(self.opener, url)
+    events = self.fetch_json_bz2(self.opener, url)
     if events is None:
       return
     self.first = False
@@ -120,11 +120,11 @@ class NicoPoll:
     self.live_details.update(details)
     self.liveTableModel.appendItems(details)
 
-  def fetch_json_gz(self, opener, url):
+  def fetch_json_bz2(self, opener, url):
     # print "fetch url:%s" % url
     try:
-      jsongz = opener.open(url).read()
-      jsonstr = zlib.decompress(jsongz, 15, 65535)
+      jsonbz2 = opener.open(url).read()
+      jsonstr = bz2.decompress(jsonbz2, 15, 65535)
 
       return json.JSONDecoder().decode(jsonstr)
     except urllib2.HTTPError, e:
@@ -136,13 +136,13 @@ class NicoPoll:
       time.sleep(600)
       print "*http url error* url: %s reason: %s" % (url, e.reason)
       return None
-    except zlib.error, e:
-      print "*zlib extract error* url: %s message: %s" % (url, str(e))
+    except bz2.error, e:
+      print "*bzip2 extract error* url: %s message: %s" % (url, str(e))
       return None
 
   def fetch_live_detail_from_live_id(self, live_id, opener):
-    url = 'http://dic.nicovideo.jp:2525/%s.json.gz' % live_id.encode('ascii')
-    detail = self.fetch_json_gz(opener, url)
+    url = 'http://dic.nicovideo.jp:2525/%s.json.bz2' % live_id.encode('ascii')
+    detail = self.fetch_json_bz2(opener, url)
     if detail:
       self.add_live_details({live_id: detail})
       self.liveid_queued_set.discard(live_id)
