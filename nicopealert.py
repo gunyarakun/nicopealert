@@ -31,9 +31,13 @@ import threading # for semaphore check
 from PyQt4 import QtCore, QtGui
 from ui_mainwindow import Ui_MainWindow
 
+import sys
+import codecs # for debug
+
 from nicopoll import NicoPoll
 from usertab import *
 from models import *
+from errorlogger import *
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
@@ -45,7 +49,8 @@ class MainWindow(QtGui.QMainWindow):
     self.firstApp = True
     self.inited = False
 
-  def __init__(self, app):
+  def __init__(self, app, logger):
+    # 同時に１起動制限
     self.firstApp = False
 
     t = threading.Thread(target = self.checkSemaphore)
@@ -55,8 +60,10 @@ class MainWindow(QtGui.QMainWindow):
     if not self.firstApp:
       sys.exit(1)
 
+    # 初期化処理
     QtGui.QDialog.__init__(self)
     self.app = app
+    self.logger = logger
 
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
@@ -195,14 +202,14 @@ class MainWindow(QtGui.QMainWindow):
     event.ignore()
 
 if __name__ == '__main__':
-  import sys
-  import codecs # for debug
-
+  logger = ErrorLogger('nicopealert.log')
   app = QtGui.QApplication(sys.argv)
-  mw = MainWindow(app)
+  mw = MainWindow(app, logger)
   try:
     mw.show()
     ret = app.exec_()
+  except:
+    logger.log_exception()
   finally:
     mw.trayIcon.hide()
     mw.sem.release()
