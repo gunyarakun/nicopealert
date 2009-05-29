@@ -4,9 +4,7 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: あるバージョン以下は強制起動禁止
 # TODO: サーバサイド、終わった生放送が出続ける
-# TODO: 生放送タブのstretchポリシー見直し
 # TODO: 検索条件の保存
 # TODO: 新着イベントでタブ色変更
 # TODO: 大百科古いイベント削除

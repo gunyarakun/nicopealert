@@ -205,18 +205,18 @@ class NicoLiveTableModel(TableModel):
                QtCore.QVariant(u'コミュID'),
                QtCore.QVariant(u'コミュ名'),
                QtCore.QVariant(u'生主'),
+               QtCore.QVariant(u'カテゴリ'),
                QtCore.QVariant(u'来場数'),
                QtCore.QVariant(u'コメ数'),
-               QtCore.QVariant(u'カテゴリ'),
                QtCore.QVariant(u'開始時刻')]
-  COL_KEYS = [u'live_id', u'title', u'com_id', u'com_name', u'user_name', u'watcher_count', u'comment_count', u'category', u'time']
+  COL_KEYS = [u'live_id', u'title', u'com_id', u'com_name', u'user_name', u'category', u'watcher_count', u'comment_count', u'time']
 
   COL_LIVE_ID_INDEX = 0
   COL_TITLE_INDEX = 1
   COL_COM_ID_INDEX = 2
   COL_COM_NAME_INDEX = 3
-  COL_WATCHER_INDEX = 5
-  COL_COMMENT_INDEX = 6
+  COL_WATCHER_INDEX = 6
+  COL_COMMENT_INDEX = 7
 
   FILTER_AND_NOTIFY = True
 
