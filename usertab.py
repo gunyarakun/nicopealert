@@ -336,7 +336,7 @@ class LiveUserTabWidget(UserTabWidget):
   ICON_FILE_NAME = ':/live.ico'
   DEFAULT_TAB_TEXT = '生放送'
   TAB_TOOL_TIP = 'ニコニコ生放送のイベント一覧です。'
-  LIST_FILTER_CHECKBOX_TEXT = 'コミュニティリストで絞る'
+  LIST_FILTER_CHECKBOX_TEXT = 'コミュリストで絞る'
 
   def __init__(self, mainWindow, initial = True):
     self.tableModel = mainWindow.liveTableModel
@@ -428,7 +428,7 @@ class CommunityListUserTabWidget(UserTabWidget):
   ICON_FILE_NAME = ':/live.ico'
   DEFAULT_TAB_TEXT = 'コミュリスト'
   TAB_TOOL_TIP = 'イベントを知りたいコミュニティの一覧です。'
-  LINE_EDIT_LABEL = '追加したいコミュニティ(空白区切り)'
+  LINE_EDIT_LABEL = '追加したいコミュニティID(空白区切り)'
   ADD_ITEM_PUSH_BUTTON_TEXT = 'コミュ追加'
   REMOVE_ITEM_PUSH_BUTTON_TEXT = 'コミュ削除'
 
