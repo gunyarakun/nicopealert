@@ -4,13 +4,13 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: 生ごとのサムネ/詳細表示
+# TODO: browser.openの引数を設定できるように。
 # TODO: サーバサイド、終わった生放送が出続ける
-# TODO: D&Dでのタブ移動
 # TODO: 大百科古いイベント削除
 # TODO: ネットワーク無効実験
 # TODO: インストーラじゃない配布
 # TODO: Macでの動作確認、パッケージング
-# TODO: 生ごとのサムネ/詳細表示
 # TODO: *** リリースへの壁 ***
 # TODO: timer_handlerのスレッド化。詰まることがあるかもしれないので。
 # TODO: リファクタリング
