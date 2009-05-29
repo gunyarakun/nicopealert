@@ -30,6 +30,9 @@ class UserTabWidget(QtGui.QWidget):
     sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
     self.setSizePolicy(sizePolicy)
 
+    # デフォルトのタブ文字色を保存しておく
+    self.textColor = tabWidget.tabBar().tabTextColor(tabWidget.indexOf(self))
+
     # 各種レイアウト
     gridLayout = QtGui.QGridLayout(self)
     horizontalLayout = QtGui.QHBoxLayout()
@@ -253,6 +256,16 @@ class UserTabWidget(QtGui.QWidget):
       self.tabWidget.setTabText(self.tabWidget.indexOf(self),
                                 self.trUtf8(self.DEFAULT_TAB_TEXT))
 
+  # イベントが起こったので、タブの文字色を変えてみる
+  def setTabNotify(self, bool):
+    tabBar = self.tabWidget.tabBar()
+    index = self.tabWidget.indexOf(self)
+    if bool and tabBar.currentIndex != index:
+      color = QtGui.QColor('#ff0000')
+    else:
+      color = self.textColor
+   tabBar.setTabTextColor(index, color)
+
 class DicUserTabWidget(UserTabWidget):
   EVENT_TAB = True
   ICON_FILE_NAME = ':/dic.ico'
@@ -262,7 +275,7 @@ class DicUserTabWidget(UserTabWidget):
 
   def __init__(self, mainWindow, initial = True):
     self.tableModel = mainWindow.dicTableModel
-    self.filterModel = DicFilterProxyModel(mainWindow)
+    self.filterModel = DicFilterProxyModel(mainWindow, self)
     self.filterModel.setSourceModel(self.tableModel)
     UserTabWidget.__init__(self, mainWindow, initial)
 
@@ -304,7 +317,7 @@ class LiveUserTabWidget(UserTabWidget):
 
   def __init__(self, mainWindow, initial = True):
     self.tableModel = mainWindow.liveTableModel
-    self.filterModel = LiveFilterProxyModel(mainWindow)
+    self.filterModel = LiveFilterProxyModel(mainWindow, self)
     self.filterModel.setSourceModel(self.tableModel)
     UserTabWidget.__init__(self, mainWindow, initial)
 

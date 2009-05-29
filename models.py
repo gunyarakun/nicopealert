@@ -11,8 +11,10 @@ import urllib
 import webbrowser
 
 class FilterListProxyModel(QtGui.QSortFilterProxyModel):
-  def __init__(self, mainWindow):
-    QtGui.QSortFilterProxyModel.__init__(self, mainWindow)
+  def __init__(self, mainWindow, tabWidget):
+    QtGui.QSortFilterProxyModel.__init__(self)
+    self.mainWindow = mainWindow
+    self.tabWidget = tabWidget
     self.listFilter = False
     self.notify = [False, False, False]
 
@@ -33,13 +35,13 @@ class FilterListProxyModel(QtGui.QSortFilterProxyModel):
   # 複数のfilterにひっかかっても、通知はまとめたいからね。
 
 class DicFilterProxyModel(FilterListProxyModel):
-  def __init__(self, mainWindow):
-    FilterListProxyModel.__init__(self, mainWindow)
+  def __init__(self, mainWindow, tabWidget):
+    FilterListProxyModel.__init__(self, mainWindow, tabWidget)
     self.list = mainWindow.settings['watchList']
 
 class LiveFilterProxyModel(FilterListProxyModel):
-  def __init__(self, mainWindow):
-    FilterListProxyModel.__init__(self, mainWindow)
+  def __init__(self, mainWindow, tabWidget):
+    FilterListProxyModel.__init__(self, mainWindow, tabWidget)
     self.list = mainWindow.settings['communityList']
 
 class TableModel(QtCore.QAbstractTableModel):
@@ -149,6 +151,7 @@ class TableModel(QtCore.QAbstractTableModel):
     for fm in self.targetFilterModels:
       cond = self.filterWithFilterModel(row_no, fm)
       if cond:
+        fm.tabWidget.setTabNotify(True)
         for i in xrange(0, 3): # TODO: remove const
           if fm.notify[i]:
             n[i] = True

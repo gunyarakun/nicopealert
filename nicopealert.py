@@ -6,7 +6,6 @@
 
 # TODO: サーバサイド、終わった生放送が出続ける
 # TODO: 検索条件の保存
-# TODO: 新着イベントでタブ色変更
 # TODO: 大百科古いイベント削除
 # TODO: ネットワーク無効実験
 # TODO: Macでの動作確認、パッケージング
@@ -83,6 +82,7 @@ class MainWindow(QtGui.QMainWindow):
     self.tabWidget = QtGui.QTabWidget(self.ui.centralwidget)
     self.tabWidget.setLayoutDirection(QtCore.Qt.LeftToRight)
     self.ui.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
+    self.connect(self.tabWidget, QtCore.SIGNAL('currentChanged(int)'), self.tabWidgetChangedHandler)
 
     # initial tabs
     DicUserTabWidget(self)
@@ -152,6 +152,9 @@ class MainWindow(QtGui.QMainWindow):
         self.hide()
       else:
         self.show()
+
+  def tabWidgetChangedHandler(self, index):
+    self.tabWidget.currentWidget().setTabNotify(False)
 
   def appendWatchList(self, category, title, view_title):
     key = u'/%s/%s' % (category, title)
