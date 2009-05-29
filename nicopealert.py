@@ -229,14 +229,16 @@ class MainWindow(QtGui.QMainWindow):
 
 if __name__ == '__main__':
   logger = ErrorLogger('nicopealert.log')
-  app = QtGui.QApplication(sys.argv)
-  mw = MainWindow(app, logger)
   try:
-    mw.show()
-    ret = app.exec_()
+    app = QtGui.QApplication(sys.argv)
+    mw = MainWindow(app, logger)
+    try:
+      mw.show()
+      ret = app.exec_()
+    finally:
+      mw.trayIcon.hide()
+      mw.sem.release()
+    sys.exit(ret)
   except:
     logger.log_exception()
-  finally:
-    mw.trayIcon.hide()
-    mw.sem.release()
-  sys.exit(ret)
+    raise
