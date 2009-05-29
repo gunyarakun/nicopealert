@@ -283,7 +283,7 @@ class UserTabWidget(QtGui.QWidget):
   def setTabNotify(self, bool):
     tabBar = self.tabWidget.tabBar()
     index = self.tabWidget.indexOf(self)
-    if bool and tabBar.currentIndex != index:
+    if bool and tabBar.currentIndex() != index:
       color = QtGui.QColor('#ff0000')
     else:
       color = self.textColor
