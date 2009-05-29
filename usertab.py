@@ -156,6 +156,7 @@ class UserTabWidget(QtGui.QWidget):
 
     # 詳細情報表示用QTextBrowser
     self.textBrowser = QtGui.QTextBrowser()
+    self.textBrowser.setMaximumHeight(128)
     detailHBox.addWidget(self.textBrowser)
 
     # タブの中身を作成
