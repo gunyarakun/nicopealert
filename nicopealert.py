@@ -5,7 +5,6 @@
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
 # TODO: サーバサイド、終わった生放送が出続ける
-# TODO: 検索条件の保存
 # TODO: 大百科古いイベント削除
 # TODO: ネットワーク無効実験
 # TODO: Macでの動作確認、パッケージング
@@ -68,9 +67,11 @@ class MainWindow(QtGui.QMainWindow):
       f.close()
       self.settings['watchList']
       self.settings['communityList']
+      self.settings['tabList']
     except:
       self.settings = {'watchList': {},
-                       'communityList': {}}
+                       'communityList': {},
+                       'tabList': []}
 
     # models
     self.dicTableModel = NicoDicTableModel(self)
@@ -120,14 +121,21 @@ class MainWindow(QtGui.QMainWindow):
     self.activateWindow()
 
     if not self.inited:
+      # データ挿入
+      self.watchListTableModel.appendItems(self.settings['watchList'])
+      self.communityListTableModel.appendItems(self.settings['communityList'])
+      for tabcond in self.settings['tabList']:
+        if tabcond['class'] == u'DicUserTabWidget':
+          t = DicUserTabWidget(self, False)
+          t.setCond(tabcond)
+        elif tabcond['class'] == u'LiveUserTabWidget':
+          t = LiveUserTabWidget(self, False)
+          t.setCond(tabcond)
+
       # タブの見た目関係初期化
       for i in xrange(0, self.tabWidget.count()):
         w = self.tabWidget.widget(i)
         w.init_after_show()
-
-      # データ挿入
-      self.watchListTableModel.appendItems(self.settings['watchList'])
-      self.communityListTableModel.appendItems(self.settings['communityList'])
 
       self.inited = True
 
@@ -170,6 +178,15 @@ class MainWindow(QtGui.QMainWindow):
     u = {'id': com_id, 'name': com_name}
     self.communityListTableModel.appendItems({com_id: u})
     self.settings['communityList'][com_id] = u
+    self.saveSettings()
+
+  # 各タブの情報を保存する
+  def saveTabs(self):
+    tabList = []
+    for i in xrange(4, self.tabWidget.count()):
+      w = self.tabWidget.widget(i)
+      tabList.append(w.cond())
+    self.settings['tabList'] = tabList
     self.saveSettings()
 
   # NOTE: 小汚い

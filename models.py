@@ -29,6 +29,7 @@ class FilterListProxyModel(QtGui.QSortFilterProxyModel):
   # 各種通知がON/OFFであるというお知らせがくる。
   def setNotify(self, type, bool):
     self.notify[type] = bool
+    self.mainWindow.saveTabs()
 
   # NOTE: Notifyの実処理を各filterModelで行わないのはなぜか。
   # それは、同じitemに対する通知が複数行われるとウザいからである。

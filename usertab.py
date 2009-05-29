@@ -165,6 +165,33 @@ class UserTabWidget(QtGui.QWidget):
     # showのあとなら出来るっぽい？ので
     pass
 
+  def setCond(self, cond):
+    keyword = QtCore.QString(cond['keyword'])
+    self.keywordLineEdit.setText(keyword)
+    self.listFilterCheckBox.setChecked(cond['isListFilter'])
+    self.trayNotifyCheckBox.setChecked(cond['isTrayNotify'])
+    self.soundNotifyCheckBox.setChecked(cond['isSoundNotify'])
+    self.browserNotifyCheckBox.setChecked(cond['isBrowserNotify'])
+
+  def cond(self):
+    return {
+      'class': unicode(self.__class__.__name__),
+      'keyword': unicode(self.keywordLineEdit.text()),
+      'isListFilter': self.listFilterCheckBox.isChecked(),
+      'isTrayNotify': self.trayNotifyCheckBox.isChecked(),
+      'isSoundNotify': self.soundNotifyCheckBox.isChecked(),
+      'isBrowserNotify': self.browserNotifyCheckBox.isChecked()
+    }
+
+  def clearCond(self):
+    self.setCond({
+      'keyword': u'',
+      'isListFilter': False,
+      'isTrayNotify': False,
+      'isSoundNotify': False,
+      'isBrowserNotify': False,
+      })
+
   def handleContextMenu(self, point):
     tree_index = self.treeView.indexAt(point)
     filterModel_index = self.filterModel.index(tree_index.row(), 0)
@@ -176,30 +203,20 @@ class UserTabWidget(QtGui.QWidget):
     popup_menu.exec_(self.treeView.mapToGlobal(point))
 
   def addTabOrItem(self):
-    keyword = self.keywordLineEdit.text()
     if self.EVENT_TAB:
       # 現在の条件で新しいタブを作り、そこにフォーカスをうつす。
       newtab = self.createTab()
-      newtab.trayNotifyCheckBox.setChecked(self.trayNotifyCheckBox.isChecked())
-      newtab.soundNotifyCheckBox.setChecked(self.soundNotifyCheckBox.isChecked())
-      newtab.browserNotifyCheckBox.setChecked(self.browserNotifyCheckBox.isChecked())
-      newtab.keywordLineEdit.setText(keyword)
-      newtab.listFilterCheckBox.setChecked(self.listFilterCheckBox.isChecked())
+      newtab.setCond(self.cond())
       self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(newtab))
       self.clearCond()
       newtab.init_after_show()
+      self.mainWindow.saveTabs()
     else:
       # リストの要素を追加する
-      for i in unicode(keyword).split():
+      keyword = unicode(self.keywordLineEdit.text())
+      for i in keyword.split():
         self.addItem(i)
       self.keywordLineEdit.setText('')
-
-  def clearCond(self):
-    self.trayNotifyCheckBox.setChecked(False)
-    self.soundNotifyCheckBox.setChecked(False)
-    self.browserNotifyCheckBox.setChecked(False)
-    self.keywordLineEdit.setText('')
-    self.listFilterCheckBox.setChecked(False)
 
   def removeTabOrItem(self):
     if self.EVENT_TAB:
@@ -210,6 +227,7 @@ class UserTabWidget(QtGui.QWidget):
       else:
         # 追加タブ: タブ削除
         self.tabWidget.removeTab(self.tabWidget.indexOf(self))
+        self.mainWindow.saveTabs()
     else:
       # ウォッチリスト/コミュニティリスト: 選択アイテム削除
       idxs = self.treeView.selectedIndexes()
@@ -224,11 +242,15 @@ class UserTabWidget(QtGui.QWidget):
                            QtCore.QRegExp.RegExp2)
     self.filterModel.setFilterRegExp(regex)
     self.updateAddButton()
+    if not self.initial:
+      self.mainWindow.saveTabs()
 
   def listFilterCheckBoxToggled(self):
     # ウォッチリスト/コミュニティリストでの絞込をするかどうか切り替え
     self.filterModel.setListFilter(self.listFilterCheckBox.isChecked())
     self.updateAddButton()
+    if not self.initial:
+      self.mainWindow.saveTabs()
 
   def updateAddButton(self):
     if self.EVENT_TAB:
@@ -264,7 +286,7 @@ class UserTabWidget(QtGui.QWidget):
       color = QtGui.QColor('#ff0000')
     else:
       color = self.textColor
-   tabBar.setTabTextColor(index, color)
+    tabBar.setTabTextColor(index, color)
 
 class DicUserTabWidget(UserTabWidget):
   EVENT_TAB = True
