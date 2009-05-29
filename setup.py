@@ -7,8 +7,8 @@ from version import VERSION
 from cx_Freeze import setup, Executable
 
 base = None
-#if sys.platform == 'win32':
-#  base = 'Win32GUI'
+if sys.platform == 'win32':
+  base = 'Win32GUI'
 
 # NOTE: if follows cx_Freeze document.
 #exe = Executable(script = 'nicopealert.py',

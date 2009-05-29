@@ -29,7 +29,6 @@ class NicoPoll:
   def __init__(self, dicTableModel, liveTableModel):
     self.opener = urllib2.build_opener()
     self.fetch_thread = threading.Thread(target = self.fetch_live_detail_from_queue)
-    self.fetch_thread.start()
     self.dicTableModel = dicTableModel
     self.liveTableModel = liveTableModel
     self.first = True
@@ -46,6 +45,9 @@ class NicoPoll:
     self.live_detail_fetch_queue = Queue.Queue(self.MAX_LIVE_DETAIL_QUEUE_SIZE)
     # fetch errorのカウント。
     self.fetch_error_count = {}
+
+    # 最後にThread開始
+    self.fetch_thread.start()
 
   def fetch(self, mainWindow):
     self.fetch_feed_lock.acquire()
