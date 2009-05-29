@@ -4,16 +4,12 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: サーバクライアント、feedにバージョン情報とURLを入れる。
-# TODO: バージョン情報は必ず読める形式にする。
 # TODO: あるバージョン以下は強制起動禁止
 # TODO: サーバサイド、終わった生放送が出続ける
-# TODO: update URLの表示機能。
 # TODO: 生放送タブのstretchポリシー見直し
 # TODO: 検索条件の保存
 # TODO: 新着イベントでタブ色変更
 # TODO: 大百科古いイベント削除
-# TODO: エラーハンドリング丁寧に、エラー報告ツール(ログとか) import logging
 # TODO: ネットワーク無効実験
 # TODO: Macでの動作確認、パッケージング
 # TODO: *** リリースへの壁 ***
@@ -107,19 +103,19 @@ class MainWindow(QtGui.QMainWindow):
     self.trayIcon.show()
     self.connect(self.trayIcon, QtCore.SIGNAL('activated(QSystemTrayIcon::ActivationReason)'), self.trayIconHandler)
 
+    # window style
+    self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowMinimizeButtonHint)
+
     # first data fetch
     self.nicopoll = NicoPoll(self.dicTableModel,
                              self.liveTableModel)
-    self.nicopoll.fetch()
+    self.nicopoll.fetch(self)
 
     # set timer for polling
     self.timer = QtCore.QTimer(self)
     self.connect(self.timer, QtCore.SIGNAL('timeout()'), self.timer_handler)
     self.timer.setInterval(self.POLLING_DURATION)
     self.timer.start()
-
-    # window style
-    self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowMinimizeButtonHint)
 
   def show(self):
     QtGui.QMainWindow.show(self)
@@ -138,7 +134,19 @@ class MainWindow(QtGui.QMainWindow):
       self.inited = True
 
   def timer_handler(self):
-    self.nicopoll.fetch()
+    self.nicopoll.fetch(self)
+
+  def showVersionUpDialog(self):
+    # クライアントバージョンが古い
+    msg = QtGui.QMessageBox.critical(self,
+        self.trUtf8('バージョンアップのお知らせ'),
+        self.trUtf8('ニコ百アラートがバージョンアップしました。お使いのバージョンは今後利用できなくなります。お手数ですが、バージョンアップお願いいたします。'),
+        self.trUtf8('ダウンロードページを開く'),
+        self.trUtf8('終了する'))
+    if msg == 0:
+      import webbrowser
+      webbrowser.open('http://dic.nicovideo.jp/nicopealert/')
+    sys.exit(2)
 
   def trayIconHandler(self, reason):
     if reason == QtGui.QSystemTrayIcon.Trigger:

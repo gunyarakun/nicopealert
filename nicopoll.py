@@ -12,6 +12,8 @@ import StringIO
 import json
 from datetime import datetime
 
+from version import VERSION
+
 # polling sucks, but...
 
 class NicoPoll:
@@ -31,6 +33,7 @@ class NicoPoll:
     self.dicTableModel = dicTableModel
     self.liveTableModel = liveTableModel
     self.first = True
+    self.fetch_feed_lock = threading.Lock()
 
     # 詳細情報取得待ちの生放送idリスト
     self.liveid_queued_set = set()
@@ -44,39 +47,45 @@ class NicoPoll:
     # fetch errorのカウント。
     self.fetch_error_count = {}
 
-  # not thread safe
-  def fetch(self):
-    first = self.first
-    if first:
-      url = 'http://dic.nicovideo.jp:2525/nicopealert-full.json.bz2'
-    else:
-      url = 'http://dic.nicovideo.jp:2525/nicopealert.json.bz2'
+  def fetch(self, mainWindow):
+    self.fetch_feed_lock.acquire()
+    try:
+      first = self.first
+      if first:
+        url = 'http://dic.nicovideo.jp:2525/nicopealert-full.json.bz2'
+      else:
+        url = 'http://dic.nicovideo.jp:2525/nicopealert.json.bz2'
 
-    events = self.fetch_json_bz2(self.opener, url)
-    if events is None:
-      return
-    self.first = False
+      events = self.fetch_json_bz2(self.opener, url)
+      if events is None:
+        return
+      self.first = False
 
-    self.check_new_dic_events(events)
-    current_lives = events['lives']
-    self.liveTableModel.current_lives(current_lives)
+      if events['version'] > VERSION:
+        mainWindow.showVersionUpDialog()
 
-    if first:
-      self.add_live_details(current_lives)
-    else:
-      for live_id, live_count in current_lives.items():
-        if self.live_details.has_key(live_id):
-          self.live_details[live_id]['watcher_count'] = live_count['watcher_count']
-          self.live_details[live_id]['comment_count'] = live_count['comment_count']
-        elif not live_id in self.liveid_queued_set:
-          while True:
-            try:
-              self.live_detail_fetch_queue.put(live_id)
-              self.liveid_queued_set.add(live_id)
-              break
-            except Queue.Full, e:
-              # TODO: error handling
-              time.sleep(1)
+      self.check_new_dic_events(events)
+      current_lives = events['lives']
+      self.liveTableModel.current_lives(current_lives)
+
+      if first:
+        self.add_live_details(current_lives)
+      else:
+        for live_id, live_count in current_lives.items():
+          if self.live_details.has_key(live_id):
+            self.live_details[live_id]['watcher_count'] = live_count['watcher_count']
+            self.live_details[live_id]['comment_count'] = live_count['comment_count']
+          elif not live_id in self.liveid_queued_set:
+            while True:
+              try:
+                self.live_detail_fetch_queue.put(live_id)
+                self.liveid_queued_set.add(live_id)
+                break
+              except Queue.Full, e:
+                # TODO: error handling
+                time.sleep(1)
+    finally:
+      self.fetch_feed_lock.release()
 
   def dic_event_key(event):
     return '%s/%s:'

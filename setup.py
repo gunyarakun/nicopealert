@@ -3,6 +3,7 @@
 
 import os
 import sys
+from version import VERSION
 from cx_Freeze import setup, Executable
 
 base = None
@@ -22,7 +23,7 @@ exe = Executable(script = 'nicopealert.py',
                  base = base)
 
 setup(name = 'nicopealert',
-      version = '0.0.1',
+      version = VERSION,
       description = 'nicopedia/nicolive alerter',
       executables = [exe],
       options = {
