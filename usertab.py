@@ -6,6 +6,8 @@ import urllib
 import webbrowser
 from PyQt4 import QtCore, QtGui
 
+import urllib2 # コミュ画像取得のため
+
 from models import *
 
 class UserTabWidget(QtGui.QWidget):
@@ -130,9 +132,6 @@ class UserTabWidget(QtGui.QWidget):
                  self.removeTabOrItem)
     horizontalLayout.addWidget(self.removePushButton)
 
-    #
-    gridLayout.addLayout(horizontalLayout, 5, 0, 1, 1)
-
     # イベント表示用TreeView
     self.treeView = QtGui.QTreeView(self)
     self.treeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -143,7 +142,26 @@ class UserTabWidget(QtGui.QWidget):
     self.connect(self.treeView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
                  self.handleContextMenu)
-    gridLayout.addWidget(self.treeView, 0, 0, 1, 1)
+    self.connect(self.treeView, QtCore.SIGNAL('clicked(const QModelIndex &)'),
+                 self.itemClickHandler)
+
+    # サムネイル・詳細情報表示用
+    detailHBox = QtGui.QHBoxLayout()
+
+    # サムネイル表示用
+    self.thumbLabel = QtGui.QLabel()
+    thumbPixmap = QtGui.QPixmap(128, 128)
+    self.thumbLabel.setPixmap(thumbPixmap)
+    detailHBox.addWidget(self.thumbLabel)
+
+    # 詳細情報表示用QTextBrowser
+    self.textBrowser = QtGui.QTextBrowser()
+    detailHBox.addWidget(self.textBrowser)
+
+    # タブの中身を作成
+    gridLayout.addWidget(self.treeView, 0, 0)
+    gridLayout.addLayout(detailHBox, 1, 0)
+    gridLayout.addLayout(horizontalLayout, 2, 0)
 
     # 文字列とかアイコンとか
     if self.icon is None:
@@ -164,6 +182,10 @@ class UserTabWidget(QtGui.QWidget):
     # Qtの制限？で、Tab内のWidgetで最初のタブ以外のものについては
     # カラムの削除やリサイズができない。
     # showのあとなら出来るっぽい？ので
+    pass
+
+  def itemClickHandler(self, index):
+    # サブクラスで実装する。
     pass
 
   def setCond(self, cond):
@@ -352,20 +374,43 @@ class LiveUserTabWidget(UserTabWidget):
     header.setStretchLastSection(False)
     header.setSectionHidden(self.tableModel.COL_LIVE_ID_INDEX, True)
     header.setSectionHidden(self.tableModel.COL_COM_ID_INDEX, True)
+    header.setSectionHidden(self.tableModel.COL_DESC_INDEX, True)
     header.resizeSection(1, 200)
     header.resizeSection(3, 120)
     header.resizeSection(4, 60)
     header.resizeSection(5, 70)
     header.resizeSection(6, 40)
     header.resizeSection(7, 40)
-    header.resizeSection(8, 110)
+    header.resizeSection(9, 110)
     header.setResizeMode(1, QtGui.QHeaderView.Interactive)
     header.setResizeMode(3, QtGui.QHeaderView.Interactive)
     header.setResizeMode(4, QtGui.QHeaderView.Interactive)
     header.setResizeMode(5, QtGui.QHeaderView.Stretch)
     header.setResizeMode(6, QtGui.QHeaderView.Fixed)
     header.setResizeMode(7, QtGui.QHeaderView.Fixed)
-    header.setResizeMode(8, QtGui.QHeaderView.Fixed)
+    header.setResizeMode(9, QtGui.QHeaderView.Fixed)
+
+  def itemClickHandler(self, index):
+    row = self.tableModel.raw_row_data(index.row())
+    com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
+    desc = unicode(row[self.tableModel.COL_DESC_INDEX].toString())
+    if com_id[0:2] == u'co':
+      img_url = 'http://icon.nicovideo.jp/community/%s.jpg' % com_id
+    elif com_id[0:2] == u'ch':
+      img_url = 'http://icon.nicovideo.jp/channel/%s.jpg' % com_id
+
+    pixmap = QtGui.QPixmap(128, 128)
+    try:
+      img = urllib2.urlopen(img_url).read()
+      pixmap.loadFromData(img)
+    except:
+      pass
+    finally:
+      self.thumbLabel.setPixmap(pixmap)
+
+    # TODO: use insertHtml / QTextBrowser -> QTextEdit(readOnly)
+    self.textBrowser.clear()
+    self.textBrowser.append(desc)
 
   def addContextMenuAction(self, menu, table_index):
     row = self.tableModel.raw_row_data(table_index.row())
