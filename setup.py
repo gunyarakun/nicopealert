@@ -7,8 +7,8 @@ from version import VERSION
 from cx_Freeze import setup, Executable
 
 base = None
-if sys.platform == 'win32':
-  base = 'Win32GUI'
+#if sys.platform == 'win32':
+#  base = 'Win32GUI'
 
 # NOTE: if follows cx_Freeze document.
 #exe = Executable(script = 'nicopealert.py',
@@ -32,7 +32,9 @@ setup(name = 'nicopealert',
                        'gzip',
                        'encodings.utf_8',
                        'encodings.ascii',
-                       'encodings.idna'],
+                       'encodings.idna',
+                       'encodings.raw_unicode_escape',
+                      ],
           'include_files': [('event.wav', 'event.wav'),
                             ('imageformats/qico4.dll',
                              'imageformats/qico4.dll'),
