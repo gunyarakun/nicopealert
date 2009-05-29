@@ -5,12 +5,14 @@
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
 # TODO: サーバサイド、終わった生放送が出続ける
+# TODO: D&Dでのタブ移動
 # TODO: 大百科古いイベント削除
 # TODO: ネットワーク無効実験
+# TODO: インストーラじゃない配布
 # TODO: Macでの動作確認、パッケージング
+# TODO: 生ごとのサムネ/詳細表示
 # TODO: *** リリースへの壁 ***
 # TODO: timer_handlerのスレッド化。詰まることがあるかもしれないので。
-# TODO: 生ごとの詳細表示
 # TODO: リファクタリング
 # TODO: コミュ・ウォッチリスト対象の背景色変更
 # TODO: カラム移動・サイズの記憶
@@ -30,6 +32,62 @@ from nicopoll import NicoPoll
 from usertab import *
 from models import *
 from errorlogger import *
+
+class DraggableTabBar(QtGui.QTabBar):
+  def __init__(self, parent = None):
+    QtGui.QTabBar.__init__(self, parent)
+    self.setAcceptDrops(True)
+    self.dragStartPos = None
+
+  def mousePressEvent(self, event):
+    if event.button() == QtCore.Qt.LeftButton:
+      self.dragStartPos = QtCore.QPoint(event.pos())
+    QtGui.QTabBar.mousePressEvent(self, event)
+
+  def mouseMoveEvent(self, event):
+    if not (event.buttons() & QtCore.Qt.LeftButton):
+      return
+    if (event.pos() - self.dragStartPos).manhattanLength() < \
+        QtGui.QApplication.startDragDistance():
+      return
+
+    drag = QtGui.QDrag(self)
+    mimeData = QtCore.QMimeData()
+    mimeData.setData('action', 'tab-reordering')
+    drag.setMimeData(mimeData)
+    drag.exec_()
+
+  def dragEnterEvent(self, event):
+    m = event.mimeData()
+    formats = m.formats()
+    if formats.contains('action') and m.data('action') == 'tab-reordering':
+      event.acceptProposedAction()
+
+  def dropEvent(self, event):
+    fromIndex = self.tabAt(self.dragStartPos)
+    toIndex = self.tabAt(event.pos())
+
+    if fromIndex != toIndex:
+      self.emit(QtCore.SIGNAL('tabMoveRequested(int, int)'), fromIndex, toIndex)
+    event.acceptProposedAction()
+
+class DraggableTabWidget(QtGui.QTabWidget):
+  def __init__(self, parent = None):
+    QtGui.QTabWidget.__init__(self, parent)
+    tabBar = DraggableTabBar()
+    self.connect(tabBar,
+                 QtCore.SIGNAL('tabMoveRequested(int, int)'),
+                 self.moveTab)
+    self.setTabBar(tabBar)
+
+  def moveTab(self, fromIndex, toIndex):
+    w = self.widget(fromIndex)
+    icon = self.tabIcon(fromIndex)
+    text = self.tabText(fromIndex)
+
+    self.removeTab(fromIndex)
+    self.insertTab(toIndex, w, icon, text)
+    self.setCurrentIndex(toIndex)
 
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
@@ -80,7 +138,7 @@ class MainWindow(QtGui.QMainWindow):
     self.communityListTableModel = CommunityTableModel(self)
 
     # tab widget
-    self.tabWidget = QtGui.QTabWidget(self.ui.centralwidget)
+    self.tabWidget = DraggableTabWidget(self.ui.centralwidget)
     self.tabWidget.setLayoutDirection(QtCore.Qt.LeftToRight)
     self.ui.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
     self.connect(self.tabWidget, QtCore.SIGNAL('currentChanged(int)'), self.tabWidgetChangedHandler)
@@ -183,9 +241,11 @@ class MainWindow(QtGui.QMainWindow):
   # 各タブの情報を保存する
   def saveTabs(self):
     tabList = []
-    for i in xrange(4, self.tabWidget.count()):
+    for i in xrange(0, self.tabWidget.count()):
       w = self.tabWidget.widget(i)
-      tabList.append(w.cond())
+      # 初期タブ以外を保存
+      if not w.initial:
+        tabList.append(w.cond())
     self.settings['tabList'] = tabList
     self.saveSettings()
 
