@@ -396,15 +396,15 @@ class LiveUserTabWidget(UserTabWidget):
     com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
     desc = unicode(row[self.tableModel.COL_DESC_INDEX].toString())
     if com_id[0:2] == u'co':
-      img_url = 'http://icon.nicovideo.jp/community/%s.jpg' % com_id
+      img_url = u'http://icon.nicovideo.jp/community/%s.jpg' % com_id
     elif com_id[0:2] == u'ch':
-      img_url = 'http://icon.nicovideo.jp/channel/%s.jpg' % com_id
+      img_url = u'http://icon.nicovideo.jp/channel/%s.jpg' % com_id
 
     pixmap = QtGui.QPixmap(128, 128)
     try:
       img = urllib2.urlopen(img_url).read()
       pixmap.loadFromData(img)
-    except:
+    except urllib2.HTTPError:
       pass
     finally:
       self.thumbLabel.setPixmap(pixmap)
