@@ -142,8 +142,6 @@ class UserTabWidget(QtGui.QWidget):
     self.connect(self.treeView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
                  self.handleContextMenu)
-    self.connect(self.treeView, QtCore.SIGNAL('clicked(const QModelIndex &)'),
-                 self.itemClickHandler)
 
     # サムネイル・詳細情報表示用
     detailHBox = QtGui.QHBoxLayout()
@@ -183,17 +181,23 @@ class UserTabWidget(QtGui.QWidget):
     # Qtの制限？で、Tab内のWidgetで最初のタブ以外のものについては
     # カラムの削除やリサイズができない。
     # showのあとなら出来るっぽい？ので
-    pass
+    self.treeView.setModel(self.filterModel)
+    self.connect(self.treeView.selectionModel(),
+                 QtCore.SIGNAL('selectionChanged(' \
+                                 'const QItemSelection &, ' \
+                                 'const QItemSelection &)'),
+                 self.selectionChangedHandler)
 
   def getTableIndexFromTreeViewIndex(self, treeViewIndex):
     filterModel_index = self.filterModel.index(treeViewIndex.row(), 0)
     return self.filterModel.mapToSource(filterModel_index)
 
-  def itemClickHandler(self, tree_index):
-    table_index = self.getTableIndexFromTreeViewIndex(tree_index)
-    self.itemClickHandlerRow(table_index)
+  def selectionChangedHandler(self, current, prev):
+    if current.count() == 1:
+      table_index = self.filterModel.mapToSource(current.indexes()[0])
+      self.selectionChangedHandlerRow(table_index)
 
-  def itemClickHandlerRow(self, table_index):
+  def selectionChangedHandlerRow(self, table_index):
     # サブクラスで実装する。
     pass
 
@@ -332,9 +336,8 @@ class DicUserTabWidget(UserTabWidget):
     self.filterModel.setSourceModel(self.tableModel)
     UserTabWidget.__init__(self, mainWindow, initial)
 
-    self.treeView.setModel(self.filterModel)
-
   def init_after_show(self):
+    UserTabWidget.init_after_show(self)
     # TODO: refactoring
     header = self.treeView.header()
     header.setSectionHidden(self.tableModel.COL_TITLE_INDEX, True)
@@ -374,9 +377,8 @@ class LiveUserTabWidget(UserTabWidget):
     self.filterModel.setSourceModel(self.tableModel)
     UserTabWidget.__init__(self, mainWindow, initial)
 
-    self.treeView.setModel(self.filterModel)
-
   def init_after_show(self):
+    UserTabWidget.init_after_show(self)
     # TODO: refactoring
     header = self.treeView.header()
     header.setStretchLastSection(False)
@@ -398,7 +400,7 @@ class LiveUserTabWidget(UserTabWidget):
     header.setResizeMode(7, QtGui.QHeaderView.Fixed)
     header.setResizeMode(9, QtGui.QHeaderView.Fixed)
 
-  def itemClickHandlerRow(self, table_index):
+  def selectionChangedHandlerRow(self, table_index):
     row = self.tableModel.raw_row_data(table_index.row())
     com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
     desc = unicode(row[self.tableModel.COL_DESC_INDEX].toString())
@@ -452,8 +454,6 @@ class WatchListUserTabWidget(UserTabWidget):
     self.filterModel.setSourceModel(self.tableModel)
     UserTabWidget.__init__(self, mainWindow, initial)
 
-    self.treeView.setModel(self.filterModel)
-
   def addContextMenuAction(self, menu, table_index):
     cat, title, view_title = \
       map(lambda d: unicode(d.toString()),
@@ -490,8 +490,6 @@ class CommunityListUserTabWidget(UserTabWidget):
     self.filterModel = QtGui.QSortFilterProxyModel(mainWindow)
     self.filterModel.setSourceModel(self.tableModel)
     UserTabWidget.__init__(self, mainWindow, initial)
-
-    self.treeView.setModel(self.filterModel)
 
   def addContextMenuAction(self, menu, table_index):
     row = self.tableModel.raw_row_data(table_index.row())
