@@ -185,7 +185,15 @@ class UserTabWidget(QtGui.QWidget):
     # showのあとなら出来るっぽい？ので
     pass
 
-  def itemClickHandler(self, index):
+  def getTableIndexFromTreeViewIndex(self, treeViewIndex):
+    filterModel_index = self.filterModel.index(treeViewIndex.row(), 0)
+    return self.filterModel.mapToSource(filterModel_index)
+
+  def itemClickHandler(self, tree_index):
+    table_index = self.getTableIndexFromTreeViewIndex(tree_index)
+    self.itemClickHandlerRow(table_index)
+
+  def itemClickHandlerRow(self, table_index):
     # サブクラスで実装する。
     pass
 
@@ -218,12 +226,11 @@ class UserTabWidget(QtGui.QWidget):
 
   def handleContextMenu(self, point):
     tree_index = self.treeView.indexAt(point)
-    filterModel_index = self.filterModel.index(tree_index.row(), 0)
-    tableModel_index = self.filterModel.mapToSource(filterModel_index)
+    row = self.getTableIndexFromTreeViewIndex(tree_index)
 
     popup_menu = QtGui.QMenu(self)
     # サブクラスで実装する。
-    self.addContextMenuAction(popup_menu, tableModel_index)
+    self.addContextMenuAction(popup_menu, row)
     popup_menu.exec_(self.treeView.mapToGlobal(point))
 
   def addTabOrItem(self):
@@ -391,8 +398,8 @@ class LiveUserTabWidget(UserTabWidget):
     header.setResizeMode(7, QtGui.QHeaderView.Fixed)
     header.setResizeMode(9, QtGui.QHeaderView.Fixed)
 
-  def itemClickHandler(self, index):
-    row = self.tableModel.raw_row_data(index.row())
+  def itemClickHandlerRow(self, table_index):
+    row = self.tableModel.raw_row_data(table_index.row())
     com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
     desc = unicode(row[self.tableModel.COL_DESC_INDEX].toString())
     if com_id[0:2] == u'co':
