@@ -4,7 +4,11 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: py2exe化
 # TODO: browser.openの引数を設定できるように。
+# TODO: 詳細画面の有無を設定できるように。
+# TODO: ニコ生情報を更新しないように設定できるように。
+# TODO: polling間隔を設定できるように。
 # TODO: サーバサイド、終わった生放送が出続ける
 # TODO: 大百科記事・お絵カキコ・ピコカキコ種別
 # TODO: 大百科お絵カキコ表示・コメント・レス表示
@@ -214,7 +218,7 @@ class MainWindow(QtGui.QMainWindow):
     sys.exit(2)
 
   def trayIconHandler(self, reason):
-    if reason == QtGui.QSystemTrayIcon.Trigger:
+    if reason == QtGui.QSystemTrayIcon.DoubleClick:
       if self.isVisible():
         self.hide()
       else:
