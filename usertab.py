@@ -183,21 +183,20 @@ class UserTabWidget(QtGui.QWidget):
     # showのあとなら出来るっぽい？ので
     self.treeView.setModel(self.filterModel)
     self.connect(self.treeView.selectionModel(),
-                 QtCore.SIGNAL('selectionChanged(' \
-                                 'const QItemSelection &, ' \
-                                 'const QItemSelection &)'),
-                 self.selectionChangedHandler)
+                 QtCore.SIGNAL('currentChanged(' \
+                                 'const QModelIndex &, ' \
+                                 'const QModelIndex &)'),
+                 self.currentChangedHandler)
 
   def getTableIndexFromTreeViewIndex(self, treeViewIndex):
     filterModel_index = self.filterModel.index(treeViewIndex.row(), 0)
     return self.filterModel.mapToSource(filterModel_index)
 
-  def selectionChangedHandler(self, current, prev):
-    if current.count() == 1:
-      table_index = self.filterModel.mapToSource(current.indexes()[0])
-      self.selectionChangedHandlerRow(table_index)
+  def currentChangedHandler(self, current, prev):
+    table_index = self.filterModel.mapToSource(current)
+    self.currentChangedHandlerRow(table_index)
 
-  def selectionChangedHandlerRow(self, table_index):
+  def currentChangedHandlerRow(self, table_index):
     # サブクラスで実装する。
     pass
 
@@ -400,7 +399,7 @@ class LiveUserTabWidget(UserTabWidget):
     header.setResizeMode(7, QtGui.QHeaderView.Fixed)
     header.setResizeMode(9, QtGui.QHeaderView.Fixed)
 
-  def selectionChangedHandlerRow(self, table_index):
+  def currentChangedHandlerRow(self, table_index):
     row = self.tableModel.raw_row_data(table_index.row())
     com_id = unicode(row[self.tableModel.COL_COM_ID_INDEX].toString())
     desc = unicode(row[self.tableModel.COL_DESC_INDEX].toString())
