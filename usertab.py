@@ -155,6 +155,10 @@ class UserTabWidget(QtGui.QWidget):
     # 詳細情報表示用QTextBrowser
     self.textBrowser = QtGui.QTextBrowser()
     self.textBrowser.setMaximumHeight(128)
+    self.textBrowser.setOpenLinks(False)
+    self.connect(self.textBrowser,
+                 QtCore.SIGNAL('anchorClicked(const QUrl &)'),
+                 self.anchorClickedHandler)
     detailHBox.addWidget(self.textBrowser)
 
     # タブの中身を作成
@@ -191,6 +195,9 @@ class UserTabWidget(QtGui.QWidget):
   def getTableIndexFromTreeViewIndex(self, treeViewIndex):
     filterModel_index = self.filterModel.index(treeViewIndex.row(), 0)
     return self.filterModel.mapToSource(filterModel_index)
+
+  def anchorClickedHandler(self, qurl):
+    webbrowser.open(qurl.toString())
 
   def currentChangedHandler(self, current, prev):
     table_index = self.filterModel.mapToSource(current)
@@ -417,9 +424,7 @@ class LiveUserTabWidget(UserTabWidget):
     finally:
       self.thumbLabel.setPixmap(pixmap)
 
-    # TODO: use insertHtml / QTextBrowser -> QTextEdit(readOnly)
-    self.textBrowser.clear()
-    self.textBrowser.append(desc)
+    self.textBrowser.setHtml(desc)
 
   def addContextMenuAction(self, menu, table_index):
     row = self.tableModel.raw_row_data(table_index.row())
