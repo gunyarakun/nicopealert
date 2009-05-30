@@ -138,7 +138,7 @@ class UserTabWidget(QtGui.QWidget):
     self.treeView.setSortingEnabled(True)
     self.treeView.setRootIsDecorated(False)
     self.treeView.setAlternatingRowColors(True)
-    self.treeView.setExpandsOnDoubleClick(False)
+    self.treeView.setItemsExpandable(False)
     self.connect(self.treeView,
                  QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'),
                  self.handleContextMenu)
