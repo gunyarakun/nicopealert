@@ -35,7 +35,7 @@ setup(
       ],
     }
   },
-  console = [
+  windows = [
     {
       'script': 'nicopealert.py',
       'icon_resources': [(1, 'dic.ico')],
