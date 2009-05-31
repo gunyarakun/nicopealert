@@ -445,14 +445,13 @@ class LiveUserTabWidget(UserTabWidget):
     elif com_id[0:2] == u'ch':
       img_url = u'http://icon.nicovideo.jp/channel/%s.jpg' % com_id
 
-    pixmap = QtGui.QPixmap(128, 128)
     try:
+      pixmap = QtGui.QPixmap(128, 128)
       img = urllib2.urlopen(img_url).read()
       pixmap.loadFromData(img)
-    except urllib2.HTTPError:
-      pass
-    finally:
       self.thumbLabel.setPixmap(pixmap)
+    except urllib2.HTTPError:
+      self.thumbLabel.clear()
 
     self.textBrowser.setHtml(desc)
 
