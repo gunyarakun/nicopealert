@@ -23,7 +23,7 @@ setup(
     'py2exe': {
       'compressed': 1,
       'optimize': 2,
-      'bundle_files': 2,
+      'bundle_files': 3,
       'packages': [
         'sip',
         'gzip',
@@ -35,10 +35,14 @@ setup(
       ],
     }
   },
-  windows = [
+  console = [
     {
       'script': 'nicopealert.py',
-      'icon_resources': [(1, 'dic.ico')]
+      'icon_resources': [(1, 'dic.ico')],
+      'company_name': 'Tasuku SUENAGA a.k.a. gunyarakun',
+      'copyright': '2009- Tasuku SUNEAGA a.k.a. gunyarakun',
+      # 'other_resources': [(24, 1, manifest)],
+      'version': VERSION,
     },
   ],
   data_files = [
