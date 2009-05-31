@@ -345,34 +345,25 @@ class DicUserTabWidget(UserTabWidget):
     UserTabWidget.init_after_show(self)
     # TODO: refactoring
     header = self.treeView.header()
-    header.setSectionHidden(self.tableModel.COL_CATEGORY_INDEX, True)
-    header.setSectionHidden(self.tableModel.COL_TITLE_INDEX, True)
-    header.setSectionHidden(self.tableModel.COL_REV_ID_INDEX, True)
-    header.setSectionHidden(self.tableModel.COL_RES_NO_INDEX, True)
-    header.setSectionHidden(self.tableModel.COL_OEKAKI_ID_INDEX, True)
-    header.setSectionHidden(self.tableModel.COL_OEKAKI_TITLE_INDEX, True)
-    header.setSectionHidden(self.tableModel.COL_MML_ID_INDEX, True)
-    header.setSectionHidden(self.tableModel.COL_MML_TITLE_INDEX, True)
+    header.setSectionHidden(self.tableModel.COL_ID_INDEX, True)
 
     header.setStretchLastSection(False)
     header.resizeSection(self.tableModel.COL_CATEGORY_STR_INDEX, 30)
     header.resizeSection(self.tableModel.COL_VIEW_TITLE_INDEX, 150)
     header.resizeSection(self.tableModel.COL_TYPE_STR_INDEX, 40)
-    header.resizeSection(12, 110)
+    header.resizeSection(5, 110)
 
     header.setResizeMode(self.tableModel.COL_CATEGORY_STR_INDEX, QtGui.QHeaderView.Fixed)
     header.setResizeMode(self.tableModel.COL_VIEW_TITLE_INDEX, QtGui.QHeaderView.Interactive)
     header.setResizeMode(self.tableModel.COL_TYPE_STR_INDEX, QtGui.QHeaderView.Fixed)
     header.setResizeMode(self.tableModel.COL_COMMENT_INDEX, QtGui.QHeaderView.Stretch)
-    header.setResizeMode(12, QtGui.QHeaderView.Fixed)
+    header.setResizeMode(5, QtGui.QHeaderView.Fixed)
 
   def currentChangedHandlerRow(self, table_index):
-    row = self.tableModel.raw_row_data(table_index.row())
-    oekaki_id, ok = row[self.tableModel.COL_OEKAKI_ID_INDEX].toInt()
-    comment = unicode(row[self.tableModel.COL_COMMENT_INDEX].toString())
-    if ok:
+    d = self.tableModel.source_detail(table_index.row())
+    if d.has_key('oekaki_id'):
       pixmap = QtGui.QPixmap()
-      img_url = 'http://dic.nicovideo.jp/oekaki_thumb/%d.png' % oekaki_id
+      img_url = 'http://dic.nicovideo.jp/oekaki_thumb/%d.png' % d['oekaki_id']
       try:
         img = urllib2.urlopen(img_url).read()
         pixmap.loadFromData(img)
@@ -382,21 +373,29 @@ class DicUserTabWidget(UserTabWidget):
     else:
       self.thumbLabel.clear()
 
-    html = cgi.escape(comment)
-    html = self.tableModel.RE_LF.sub('<br>', html)
+    if d.has_key('comment') and d['comment']:
+      html = cgi.escape(d['comment'])
+      html = self.tableModel.RE_LF.sub('<br>', html)
+    else:
+      html = u'(コメントがありません)'
 
     self.textBrowser.setHtml(html)
 
   def addContextMenuAction(self, menu, table_index):
-    cat, title, view_title = \
-      map(lambda d: unicode(d.toString()),
-          self.tableModel.raw_row_data(table_index.row())[0:3])
-    url = 'http://dic.nicovideo.jp/%s/%s' % (cat, urllib.quote(title.encode('utf-8')))
+    d = self.tableModel.source_detail(table_index.row())
+    cat_title = '%s/%s' % (d['category'], urllib.quote(d['title'].encode('utf-8')))
+    article_url = 'http://dic.nicovideo.jp/' + cat_title
 
-    menu.addAction(u'記事/掲示板を見る', lambda: webbrowser.open(url))
-    menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
+    if d.has_key('res_no'):
+      rn = d['res_no']
+      rs = (rn - 1) / 30 * 30 + 1
+      bbs_url = 'http://dic.nicovideo.jp/b/%s/%d-#%d' % (cat_title, rs, rn)
+      menu.addAction(u'掲示板を見る', lambda: webbrowser.open(bbs_url))
+      menu.addAction(u'掲示板URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(bbs_url)))
+    menu.addAction(u'記事を見る', lambda: webbrowser.open(article_url))
+    menu.addAction(u'記事URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(article_url)))
     menu.addSeparator()
-    menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.appendWatchList(cat, title, view_title))
+    menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.appendWatchList(d['category'], d['title'], d['view_title']))
 
   def createTab(self):
     return DicUserTabWidget(self.mainWindow, False)

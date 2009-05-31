@@ -46,6 +46,10 @@ class NicoPoll:
     # fetch errorのカウント。
     self.fetch_error_count = {}
 
+    # Modelからpollerへのアクセス
+    dicTableModel.details = self.dic_details
+    liveTableModel.details = self.live_details
+
     # 最後にThread開始
     self.fetch_thread.start()
 
@@ -108,6 +112,7 @@ class NicoPoll:
       p[u'category_str'] = self.CATEGORY_STR[p[u'category']]
       p[u'type_str'] = u'編集'
       key = u'/r/%s/%s/%d' % (p[u'category'], p[u'title'], p[u'rev_id'])
+      p[u'dic_id'] = key
       fetched_events[key] = p
     for r in events['reses']:
       r[u'time'] = datetime.fromtimestamp(r[u'time'])
@@ -119,6 +124,7 @@ class NicoPoll:
       else:
         r[u'type_str'] = u'レス'
       key = u'/b/%s/%s/%d' % (r[u'category'], r[u'title'], r[u'res_no'])
+      r[u'dic_id'] = key
       fetched_events[key] = r
 
     # 前回のと違うイベントだけをTableViewに通知
@@ -127,8 +133,8 @@ class NicoPoll:
     for k in new_keys:
       new_events[k] = fetched_events[k]
 
+    self.dic_details.update(fetched_events) # 先に代入
     self.dicTableModel.appendItems(new_events)
-    self.dic_details.update(fetched_events)
 
   def fetch_live_detail_from_queue(self):
     opener = urllib2.build_opener()

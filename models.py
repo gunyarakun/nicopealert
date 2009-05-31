@@ -17,6 +17,7 @@ class FilterListProxyModel(QtGui.QSortFilterProxyModel):
     self.tabWidget = tabWidget
     self.listFilter = False
     self.notify = [False, False, False]
+    self.details = None # pollingされた生データが入る。
 
   def filterAcceptsRow(self, source_row, source_parent):
     tableModel = self.sourceModel()
@@ -99,6 +100,13 @@ class TableModel(QtCore.QAbstractTableModel):
   def addTargetFilterModel(self, model):
     self.targetFilterModels.append(model)
 
+  # 必ず、１番目のカラムには一意なIDが入ることとする。
+  def source_id(self, row_no):
+    return unicode(self.datas[row_no][0].toString())
+
+  def source_detail(self, row_no):
+    return self.details[unicode(self.datas[row_no][0].toString())]
+
   # これは独自メソッド。
   def raw_row_data(self, row):
     return self.datas[row]
@@ -175,51 +183,37 @@ class TableModel(QtCore.QAbstractTableModel):
     pass
 
 class NicoDicTableModel(TableModel):
-  COL_NAMES = [QtCore.QVariant(u'記事種別コード'),
-               QtCore.QVariant(u'記事名'),
+  COL_NAMES = [QtCore.QVariant(u'ID'),
                QtCore.QVariant(u'記事種別'),
                QtCore.QVariant(u'表示用記事名'),
                QtCore.QVariant(u'イベント'),
                QtCore.QVariant(u'コメント'),
-               QtCore.QVariant(u'リビジョンID'),
-               QtCore.QVariant(u'レス番号'),
-               QtCore.QVariant(u'お絵カキコID'),
-               QtCore.QVariant(u'お絵タイトル'),
-               QtCore.QVariant(u'ピコカキコID'),
-               QtCore.QVariant(u'ピコタイトル'),
                QtCore.QVariant(u'時刻')]
-  COL_KEYS = [u'category', u'title', u'category_str', u'view_title', u'type_str', u'comment', u'rev_id', u'res_no', u'oekaki_id', u'oekaki_title', u'mml_id', u'mml_title', u'time']
+  COL_KEYS = [u'dic_id', u'category_str', u'view_title', u'type_str', u'comment', u'time']
 
-  COL_CATEGORY_INDEX = 0
-  COL_TITLE_INDEX = 1
-  COL_CATEGORY_STR_INDEX = 2
-  COL_VIEW_TITLE_INDEX = 3
-  COL_TYPE_STR_INDEX = 4
-  COL_COMMENT_INDEX = 5
-  COL_REV_ID_INDEX = 6
-  COL_RES_NO_INDEX = 7
-  COL_OEKAKI_ID_INDEX = 8
-  COL_OEKAKI_TITLE_INDEX = 9
-  COL_MML_ID_INDEX = 10
-  COL_MML_TITLE_INDEX = 11
+  COL_ID_INDEX = 0
+  COL_CATEGORY_STR_INDEX = 1
+  COL_VIEW_TITLE_INDEX = 2
+  COL_TYPE_STR_INDEX = 3
+  COL_COMMENT_INDEX = 4
 
   FILTER_AND_NOTIFY = True
 
   def filter_id(self, row_no):
-    # categoryとtitleをくっつけたもの
-    r = self.datas[row_no]
-    return u'/%s/%s' % (r[self.COL_CATEGORY_INDEX].toString(),
-                        r[self.COL_TITLE_INDEX].toString())
+    d = self.source_detail(row_no)
+    return u'%s%s' % (d['category'], d['title'])
 
   def notifyTray(self, notify_list):
-    vtitles = '\n'.join([unicode(self.datas[x][2].toString()) for x in notify_list])
+    vtitles = '\n'.join([unicode(self.datas[x][self.COL_VIEW_TITLE_INDEX].toString()) for x in notify_list])
     self.mainWindow.trayIcon.showMessage(self.trUtf8('新着大百科'), vtitles)
 
   def notifyBrowser(self, notify_list):
+    d = self.source_detail(row_no)
     map(webbrowser.open,
-        ['http://dic.nicovideo.jp/%s/%s' % 
-          (self.datas[n][self.COL_CATEGORY_INDEX].toString(),
-           self.datas[n][self.COL_TITLE_INDEX].toString()) for n in notify_list])
+        ['http://dic.nicovideo.jp/%s/%s' % (
+          d['category'],
+          urllib.quote(d['title'].encode('utf-8'))
+         ) for n in notify_list])
 
 class NicoLiveTableModel(TableModel):
   COL_NAMES = [QtCore.QVariant(u'ID'),
@@ -246,16 +240,16 @@ class NicoLiveTableModel(TableModel):
 
   def filter_id(self, row_no):
     # com_idでフィルタリングする
-    return unicode(self.datas[row_no][self.COL_COM_ID_INDEX].toString())
+    return self.source_detail(row_no)['com_id']
 
   def notifyTray(self, notify_list):
-    vtitles = '\n'.join([unicode(self.datas[x][self.COL_TITLE_INDEX].toString())
+    vtitles = '\n'.join([self.source_detail(x)
                          for x in notify_list])
     self.mainWindow.trayIcon.showMessage(self.trUtf8('新着生放送'), vtitles)
 
   def notifyBrowser(self, notify_list):
     map(webbrowser.open,
-        ['http://live.nicovideo.jp/watch/%s' % self.datas[n][self.COL_LIVE_ID_INDEX].toString()
+        ['http://live.nicovideo.jp/watch/%s' % self.source_id(row_no)
          for n in notify_list])
 
   def current_lives(self, lives):
@@ -267,7 +261,7 @@ class NicoLiveTableModel(TableModel):
     self.lock.acquire()
     try:
       for row in xrange(0, len(self.datas)):
-        live_id = unicode(self.datas[row][self.COL_LIVE_ID_INDEX].toString())
+        live_id = self.source_id(row)
 
         if lives.has_key(live_id):
           # print 'live %s count to be freshed' % live_id

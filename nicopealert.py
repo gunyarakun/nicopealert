@@ -4,8 +4,6 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
-# TODO: TableModelからはIDだけ引けるようにして、実データはID経由で引っ張る
-# TODO: py2exe化
 # TODO: browser.openの引数を設定できるように。
 # TODO: 詳細画面の有無を設定できるように。
 # TODO: ニコ生情報を更新しないように設定できるように。
@@ -227,7 +225,7 @@ class MainWindow(QtGui.QMainWindow):
     self.tabWidget.currentWidget().setTabNotify(False)
 
   def appendWatchList(self, category, title, view_title):
-    key = u'/%s/%s' % (category, title)
+    key = u'%s%s' % (category, title)
     i = {'category': category,
          'title': title,
          'view_title': view_title}
