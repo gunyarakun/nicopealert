@@ -7,6 +7,7 @@ import webbrowser
 from PyQt4 import QtCore, QtGui
 
 import urllib2 # コミュ画像取得のため
+import cgi # エスケープ
 
 from models import *
 
@@ -148,8 +149,6 @@ class UserTabWidget(QtGui.QWidget):
 
     # サムネイル表示用
     self.thumbLabel = QtGui.QLabel()
-    thumbPixmap = QtGui.QPixmap(128, 128)
-    self.thumbLabel.setPixmap(thumbPixmap)
     detailHBox.addWidget(self.thumbLabel)
 
     # 詳細情報表示用QTextBrowser
@@ -346,15 +345,47 @@ class DicUserTabWidget(UserTabWidget):
     UserTabWidget.init_after_show(self)
     # TODO: refactoring
     header = self.treeView.header()
+    header.setSectionHidden(self.tableModel.COL_CATEGORY_INDEX, True)
     header.setSectionHidden(self.tableModel.COL_TITLE_INDEX, True)
+    header.setSectionHidden(self.tableModel.COL_REV_ID_INDEX, True)
+    header.setSectionHidden(self.tableModel.COL_RES_NO_INDEX, True)
+    header.setSectionHidden(self.tableModel.COL_OEKAKI_ID_INDEX, True)
+    header.setSectionHidden(self.tableModel.COL_OEKAKI_TITLE_INDEX, True)
+    header.setSectionHidden(self.tableModel.COL_MML_ID_INDEX, True)
+    header.setSectionHidden(self.tableModel.COL_MML_TITLE_INDEX, True)
+
     header.setStretchLastSection(False)
-    header.resizeSection(0, 30)
-    header.resizeSection(2, 150)
-    header.resizeSection(4, 110)
-    header.setResizeMode(0, QtGui.QHeaderView.Fixed)
-    header.setResizeMode(2, QtGui.QHeaderView.Interactive)
-    header.setResizeMode(3, QtGui.QHeaderView.Stretch)
-    header.setResizeMode(4, QtGui.QHeaderView.Fixed)
+    header.resizeSection(self.tableModel.COL_CATEGORY_STR_INDEX, 30)
+    header.resizeSection(self.tableModel.COL_VIEW_TITLE_INDEX, 150)
+    header.resizeSection(self.tableModel.COL_TYPE_STR_INDEX, 40)
+    header.resizeSection(12, 110)
+
+    header.setResizeMode(self.tableModel.COL_CATEGORY_STR_INDEX, QtGui.QHeaderView.Fixed)
+    header.setResizeMode(self.tableModel.COL_VIEW_TITLE_INDEX, QtGui.QHeaderView.Interactive)
+    header.setResizeMode(self.tableModel.COL_TYPE_STR_INDEX, QtGui.QHeaderView.Fixed)
+    header.setResizeMode(self.tableModel.COL_COMMENT_INDEX, QtGui.QHeaderView.Stretch)
+    header.setResizeMode(12, QtGui.QHeaderView.Fixed)
+
+  def currentChangedHandlerRow(self, table_index):
+    row = self.tableModel.raw_row_data(table_index.row())
+    oekaki_id, ok = row[self.tableModel.COL_OEKAKI_ID_INDEX].toInt()
+    comment = unicode(row[self.tableModel.COL_COMMENT_INDEX].toString())
+    if ok:
+      pixmap = QtGui.QPixmap()
+      img_url = 'http://dic.nicovideo.jp/oekaki_thumb/%d.png' % oekaki_id
+      try:
+        img = urllib2.urlopen(img_url).read()
+        pixmap.loadFromData(img)
+      except urllib2.HTTPError:
+        pass
+      self.thumbLabel.setPixmap(pixmap)
+    else:
+      self.thumbLabel.clear()
+
+    html = cgi.escape(comment)
+    html = self.tableModel.RE_LF.sub('<br>', html)
+
+    self.textBrowser.setHtml(html)
 
   def addContextMenuAction(self, menu, table_index):
     cat, title, view_title = \

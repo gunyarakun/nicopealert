@@ -175,15 +175,33 @@ class TableModel(QtCore.QAbstractTableModel):
     pass
 
 class NicoDicTableModel(TableModel):
-  COL_NAMES = [QtCore.QVariant(u'記事種別'),
+  COL_NAMES = [QtCore.QVariant(u'記事種別コード'),
                QtCore.QVariant(u'記事名'),
+               QtCore.QVariant(u'記事種別'),
                QtCore.QVariant(u'表示用記事名'),
+               QtCore.QVariant(u'イベント'),
                QtCore.QVariant(u'コメント'),
+               QtCore.QVariant(u'リビジョンID'),
+               QtCore.QVariant(u'レス番号'),
+               QtCore.QVariant(u'お絵カキコID'),
+               QtCore.QVariant(u'お絵タイトル'),
+               QtCore.QVariant(u'ピコカキコID'),
+               QtCore.QVariant(u'ピコタイトル'),
                QtCore.QVariant(u'時刻')]
-  COL_KEYS = [u'category', u'title', u'view_title', u'comment', u'time']
+  COL_KEYS = [u'category', u'title', u'category_str', u'view_title', u'type_str', u'comment', u'rev_id', u'res_no', u'oekaki_id', u'oekaki_title', u'mml_id', u'mml_title', u'time']
 
   COL_CATEGORY_INDEX = 0
   COL_TITLE_INDEX = 1
+  COL_CATEGORY_STR_INDEX = 2
+  COL_VIEW_TITLE_INDEX = 3
+  COL_TYPE_STR_INDEX = 4
+  COL_COMMENT_INDEX = 5
+  COL_REV_ID_INDEX = 6
+  COL_RES_NO_INDEX = 7
+  COL_OEKAKI_ID_INDEX = 8
+  COL_OEKAKI_TITLE_INDEX = 9
+  COL_MML_ID_INDEX = 10
+  COL_MML_TITLE_INDEX = 11
 
   FILTER_AND_NOTIFY = True
 

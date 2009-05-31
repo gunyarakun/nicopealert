@@ -92,15 +92,32 @@ class NicoPoll:
   def dic_event_key(event):
     return '%s/%s:'
 
+  CATEGORY_STR = {
+    u'a': u'単語',
+    u'v': u'動画',
+    u'i': u'商品',
+    u'u': u'ユーザ',
+    u'c': u'コミュ',
+  }
+
   def check_new_dic_events(self, events):
     # UNIX timeをPythonの時刻にする
     fetched_events = {}
     for p in events['pages']:
       p[u'time'] = datetime.fromtimestamp(p[u'time'])
-      key = u'/r/%s/%s/%d' % (p[u'category'], p[u'title'], p[u'rev_no'])
+      p[u'category_str'] = self.CATEGORY_STR[p[u'category']]
+      p[u'type_str'] = u'編集'
+      key = u'/r/%s/%s/%d' % (p[u'category'], p[u'title'], p[u'rev_id'])
       fetched_events[key] = p
     for r in events['reses']:
       r[u'time'] = datetime.fromtimestamp(r[u'time'])
+      r[u'category_str'] = self.CATEGORY_STR[r[u'category']]
+      if r.has_key(u'oekaki_id'):
+        r[u'type_str'] = u'絵'
+      elif r.has_key(u'mml_id'):
+        r[u'type_str'] = u'ピコ'
+      else:
+        r[u'type_str'] = u'レス'
       key = u'/b/%s/%s/%d' % (r[u'category'], r[u'title'], r[u'res_no'])
       fetched_events[key] = r
 
