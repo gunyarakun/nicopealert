@@ -4,6 +4,7 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: QSortFilterProxyModel: invalid inserted rows reported by source modelってのが出るようになった。
 # TODO: サーバ側で生放送終了をちゃんと検知する。
 # TODO: サーバ側でRSSを見るようにする。
 # TODO: member only/顔出しを表示
