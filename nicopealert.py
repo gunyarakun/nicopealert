@@ -4,6 +4,9 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: サーバ側で生放送終了をちゃんと検知する。
+# TODO: サーバ側でRSSを見るようにする。
+# TODO: member only/顔出しを表示
 # TODO: ディレクトリ名に日本語入ってるとマズそうだ。
 # TODO: セーブデータjson化/cPickleやめとく
 # TODO: セーブデータにバージョン入れる。
