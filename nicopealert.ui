@@ -13,7 +13,7 @@
    <string>ニコ百アラート</string>
   </property>
   <property name="windowIcon" >
-   <iconset>
+   <iconset resource="nicopealert.qrc" >
     <normaloff>:/dic.ico</normaloff>:/dic.ico</iconset>
   </property>
   <widget class="QWidget" name="centralwidget" >
@@ -28,17 +28,11 @@
      <height>18</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu" >
-    <property name="title" >
-     <string>ファイル</string>
-    </property>
-   </widget>
-   <addaction name="menu" />
   </widget>
   <widget class="QStatusBar" name="statusbar" />
  </widget>
  <resources>
-   <include location="nicopealert.qrc" />
+  <include location="nicopealert.qrc" />
  </resources>
  <connections/>
 </ui>

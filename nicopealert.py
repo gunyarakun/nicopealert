@@ -180,11 +180,11 @@ class MainWindow(QtGui.QMainWindow):
                              self.liveTableModel)
     self.nicopoll.fetch(self)
 
-    # set timer for polling
-    self.timer = QtCore.QTimer(self)
-    self.connect(self.timer, QtCore.SIGNAL('timeout()'), self.timer_handler)
-    self.timer.setInterval(self.POLLING_DURATION)
-    self.timer.start()
+    # menu
+    self.fileMenu = QtGui.QMenu(self.ui.menubar)
+    self.fileMenu.addAction(u'設定', lambda: self.showSettingsDialog())
+    self.fileMenu.setTitle(self.trUtf8('ファイル'))
+    self.ui.menubar.addAction(self.fileMenu.menuAction())
 
   def show(self):
     QtGui.QMainWindow.show(self)
@@ -209,8 +209,16 @@ class MainWindow(QtGui.QMainWindow):
 
       self.inited = True
 
+    # set timer for polling
+    self.timer = QtCore.QTimer(self)
+    self.connect(self.timer, QtCore.SIGNAL('timeout()'), self.timer_handler)
+    self.timer.setInterval(self.POLLING_DURATION)
+    self.timer.start()
+
   def timer_handler(self):
     self.nicopoll.fetch(self)
+
+    # 
 
   def showVersionUpDialog(self):
     # クライアントバージョンが古い
@@ -302,6 +310,58 @@ class MainWindow(QtGui.QMainWindow):
     # ×ボタンで、タスクトレイバーのみになる
     self.hide()
     event.ignore()
+
+  def showSettingsDialog(self):
+    dialog = QtGui.QDialog(self)
+    dialog.setWindowModality(QtCore.Qt.ApplicationModal)
+    dialog.resize(300, 100)
+    dialog.setWindowTitle(self.trUtf8('設定ウィンドウ'))
+
+    layout = QtGui.QVBoxLayout(dialog)
+    settingsLayout = QtGui.QGridLayout()
+
+    browserOpenModeLabel = QtGui.QLabel(dialog)
+    browserOpenModeLabel.setText(self.trUtf8('ブラウザでの開き方'))
+    settingsLayout.addWidget(browserOpenModeLabel, 0, 0)
+
+    browserOpenModeComboBox = QtGui.QComboBox(dialog)
+    browserOpenModeComboBox.addItem(self.trUtf8('同じウィンドウ'))
+    browserOpenModeComboBox.addItem(self.trUtf8('新しいウィンドウ'))
+    browserOpenModeComboBox.addItem(self.trUtf8('新しいタブ'))
+    settingsLayout.addWidget(browserOpenModeComboBox, 0, 1)
+
+    browserOpenModeLabel.setBuddy(browserOpenModeComboBox)
+
+    pollingDurationLabel = QtGui.QLabel(dialog)
+    pollingDurationLabel.setText(self.trUtf8('情報取得頻度'))
+    settingsLayout.addWidget(pollingDurationLabel, 1, 0)
+
+    pollingDurationComboBox = QtGui.QComboBox(dialog)
+    pollingDurationComboBox.addItem(self.trUtf8('まめ'))
+    pollingDurationComboBox.addItem(self.trUtf8('5分ごと'))
+    pollingDurationComboBox.addItem(self.trUtf8('10分ごと'))
+    settingsLayout.addWidget(pollingDurationComboBox, 1, 1)
+
+    pollingDurationLabel.setBuddy(pollingDurationComboBox)
+
+    layout.addLayout(settingsLayout)
+
+    # Cancel/OK
+    bb = QtGui.QDialogButtonBox(dialog)
+    bb.setGeometry(QtCore.QRect(30, 50, 241, 32))
+    bb.setOrientation(QtCore.Qt.Horizontal)
+    bb.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
+                          QtGui.QDialogButtonBox.Ok)
+
+    layout.addWidget(bb)
+
+    self.connect(bb, QtCore.SIGNAL('accepted()'), lambda: self.settingsDialogAccepted(dialog))
+    self.connect(bb, QtCore.SIGNAL('rejected()'), dialog.reject)
+
+    dialog.show()
+
+  def settingsDialogAccepted(self, dialog):
+    dialog.accept()
 
 if __name__ == '__main__':
   logger = ErrorLogger('nicopealert.log')

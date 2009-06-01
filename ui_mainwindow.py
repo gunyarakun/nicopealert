@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'nicopealert.ui'
 #
-# Created: Wed May 27 09:36:53 2009
+# Created: Mon Jun 01 20:39:35 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -24,20 +24,16 @@ class Ui_MainWindow(object):
     self.menubar = QtGui.QMenuBar(MainWindow)
     self.menubar.setGeometry(QtCore.QRect(0, 0, 708, 18))
     self.menubar.setObjectName("menubar")
-    self.menu = QtGui.QMenu(self.menubar)
-    self.menu.setObjectName("menu")
     MainWindow.setMenuBar(self.menubar)
     self.statusbar = QtGui.QStatusBar(MainWindow)
     self.statusbar.setObjectName("statusbar")
     MainWindow.setStatusBar(self.statusbar)
-    self.menubar.addAction(self.menu.menuAction())
 
     self.retranslateUi(MainWindow)
     QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
   def retranslateUi(self, MainWindow):
     MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "ニコ百アラート", None, QtGui.QApplication.UnicodeUTF8))
-    self.menu.setTitle(QtGui.QApplication.translate("MainWindow", "ファイル", None, QtGui.QApplication.UnicodeUTF8))
 
 import nicopealert_rc
 
