@@ -363,12 +363,16 @@ class DicUserTabWidget(UserTabWidget):
     d = self.tableModel.source_detail(table_index.row())
     if d.has_key('oekaki_id'):
       pixmap = QtGui.QPixmap()
-      img_url = 'http://dic.nicovideo.jp/oekaki_thumb/%d.png' % d['oekaki_id']
-      try:
-        img = urllib2.urlopen(img_url).read()
-        pixmap.loadFromData(img)
-      except urllib2.HTTPError:
-        pass
+      if d.has_key('com_image'):
+        pixmap.loadFromData(d['com_image'])
+      else:
+        img_url = 'http://dic.nicovideo.jp/oekaki_thumb/%d.png' % d['oekaki_id']
+        try:
+          img = urllib2.urlopen(img_url).read()
+          pixmap.loadFromData(img)
+          d['com_image'] = img
+        except urllib2.HTTPError:
+          pass
       self.thumbLabel.setPixmap(pixmap)
     else:
       self.thumbLabel.clear()
