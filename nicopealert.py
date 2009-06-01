@@ -4,6 +4,8 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: セーブデータjson化/cPickleやめとく
+# TODO: セーブデータにバージョン入れる。
 # TODO: browser.openの引数を設定できるように。
 # TODO: 詳細画面の有無を設定できるように。
 # TODO: ニコ生情報を更新しないように設定できるように。
