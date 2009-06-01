@@ -243,7 +243,7 @@ class NicoLiveTableModel(TableModel):
     return self.source_detail(row_no)['com_id']
 
   def notifyTray(self, notify_list):
-    vtitles = '\n'.join([self.source_detail(x)
+    vtitles = '\n'.join([self.source_detail(x)['title']
                          for x in notify_list])
     self.mainWindow.trayIcon.showMessage(self.trUtf8('新着生放送'), vtitles)
 
