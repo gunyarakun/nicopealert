@@ -156,6 +156,7 @@ class MainWindow(QtGui.QMainWindow):
     # trayIcon/trayIconMenu/trayIconImg
     self.trayIconImg = QtGui.QIcon(self.tr(':/dic.ico'))
     self.trayIconMenu = QtGui.QMenu(self)
+    self.trayIconMenu.addAction(u'表示/非表示', lambda: self.toggleWindowVisibility())
     self.trayIconMenu.addAction(u'終了', lambda: self.app.quit())
     self.trayIcon = QtGui.QSystemTrayIcon(self)
     self.trayIcon.setContextMenu(self.trayIconMenu)
@@ -215,12 +216,16 @@ class MainWindow(QtGui.QMainWindow):
       webbrowser.open('http://dic.nicovideo.jp/nicopealert/')
     sys.exit(2)
 
+  def toggleWindowVisibility(self):
+    if self.isVisible():
+      self.hide()
+    else:
+      self.show()
+
   def trayIconHandler(self, reason):
+    # NOTE: Macではダメっぽい
     if reason == QtGui.QSystemTrayIcon.DoubleClick:
-      if self.isVisible():
-        self.hide()
-      else:
-        self.show()
+      self.toggleWindowVisibility()
 
   def tabWidgetChangedHandler(self, index):
     self.tabWidget.currentWidget().setTabNotify(False)
