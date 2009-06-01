@@ -184,17 +184,17 @@ class TableModel(QtCore.QAbstractTableModel):
 
 class NicoDicTableModel(TableModel):
   COL_NAMES = [QtCore.QVariant(u'ID'),
+               QtCore.QVariant(u'イベント'),
                QtCore.QVariant(u'記事種別'),
                QtCore.QVariant(u'表示用記事名'),
-               QtCore.QVariant(u'イベント'),
                QtCore.QVariant(u'コメント'),
                QtCore.QVariant(u'時刻')]
-  COL_KEYS = [u'dic_id', u'category_str', u'view_title', u'type_str', u'comment', u'time']
+  COL_KEYS = [u'dic_id', u'type_str', u'category_str', u'view_title', u'comment', u'time']
 
   COL_ID_INDEX = 0
-  COL_CATEGORY_STR_INDEX = 1
-  COL_VIEW_TITLE_INDEX = 2
-  COL_TYPE_STR_INDEX = 3
+  COL_TYPE_STR_INDEX = 1
+  COL_CATEGORY_STR_INDEX = 2
+  COL_VIEW_TITLE_INDEX = 3
   COL_COMMENT_INDEX = 4
 
   FILTER_AND_NOTIFY = True

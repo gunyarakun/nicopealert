@@ -348,16 +348,16 @@ class DicUserTabWidget(UserTabWidget):
     header.setSectionHidden(self.tableModel.COL_ID_INDEX, True)
 
     header.setStretchLastSection(False)
-    header.resizeSection(self.tableModel.COL_CATEGORY_STR_INDEX, 30)
-    header.resizeSection(self.tableModel.COL_VIEW_TITLE_INDEX, 150)
     header.resizeSection(self.tableModel.COL_TYPE_STR_INDEX, 40)
-    header.resizeSection(5, 110)
+    header.resizeSection(self.tableModel.COL_CATEGORY_STR_INDEX, 40)
+    header.resizeSection(self.tableModel.COL_VIEW_TITLE_INDEX, 150)
+    header.resizeSection(5, 130)
 
+    header.setResizeMode(self.tableModel.COL_TYPE_STR_INDEX, QtGui.QHeaderView.Fixed)
     header.setResizeMode(self.tableModel.COL_CATEGORY_STR_INDEX, QtGui.QHeaderView.Fixed)
     header.setResizeMode(self.tableModel.COL_VIEW_TITLE_INDEX, QtGui.QHeaderView.Interactive)
-    header.setResizeMode(self.tableModel.COL_TYPE_STR_INDEX, QtGui.QHeaderView.Fixed)
     header.setResizeMode(self.tableModel.COL_COMMENT_INDEX, QtGui.QHeaderView.Stretch)
-    header.setResizeMode(5, QtGui.QHeaderView.Fixed)
+    header.setResizeMode(5, QtGui.QHeaderView.Interactive)
 
   def currentChangedHandlerRow(self, table_index):
     d = self.tableModel.source_detail(table_index.row())
@@ -427,14 +427,14 @@ class LiveUserTabWidget(UserTabWidget):
     header.resizeSection(5, 70)
     header.resizeSection(6, 40)
     header.resizeSection(7, 40)
-    header.resizeSection(9, 110)
+    header.resizeSection(9, 130)
     header.setResizeMode(1, QtGui.QHeaderView.Interactive)
     header.setResizeMode(3, QtGui.QHeaderView.Interactive)
     header.setResizeMode(4, QtGui.QHeaderView.Interactive)
     header.setResizeMode(5, QtGui.QHeaderView.Stretch)
     header.setResizeMode(6, QtGui.QHeaderView.Fixed)
     header.setResizeMode(7, QtGui.QHeaderView.Fixed)
-    header.setResizeMode(9, QtGui.QHeaderView.Fixed)
+    header.setResizeMode(9, QtGui.QHeaderView.Interactive)
 
   def currentChangedHandlerRow(self, table_index):
     row = self.tableModel.raw_row_data(table_index.row())

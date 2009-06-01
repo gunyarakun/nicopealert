@@ -9,7 +9,13 @@
 # TODO: ニコ生情報を更新しないように設定できるように。
 # TODO: polling間隔を設定できるように。
 # TODO: 開始時刻の幅をインタラクティブにする。
-# TODO: w9xpopen.exeいらない。
+# TODO: TreeView幅見直す
+# TODO: リスト登録時に記事情報・コミュ情報の取得
+# TODO: リスト内記事情報・コミュ情報の更新
+# TODO: コミュ画像のキャッシュ
+# TODO: 時間って、何分前とかのほうがよくない？
+# TODO: py2exe, py2appでのimageformatsディレクトリ自動検出
+# TODO: py2exe、w9xpopen.exeいらない。
 # TODO: サーバサイド、終わった生放送が出続ける
 # TODO: 大百科古いイベント削除
 # TODO: ネットワーク無効実験
