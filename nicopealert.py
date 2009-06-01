@@ -4,6 +4,7 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: ディレクトリ名に日本語入ってるとマズそうだ。
 # TODO: セーブデータjson化/cPickleやめとく
 # TODO: セーブデータにバージョン入れる。
 # TODO: browser.openの引数を設定できるように。
