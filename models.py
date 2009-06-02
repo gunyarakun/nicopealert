@@ -8,7 +8,6 @@ from PyQt4 import QtCore, QtGui
 
 # for notify
 import urllib
-import webbrowser
 
 class FilterListProxyModel(QtGui.QSortFilterProxyModel):
   def __init__(self, mainWindow, tabWidget):
@@ -158,7 +157,6 @@ class TableModel(QtCore.QAbstractTableModel):
   def checkAndAddNotifyList(self, row_no, to_notify):
     n = [False, False, False]
     for fm in self.targetFilterModels:
-      print fm.notify
       cond = self.filterWithFilterModel(row_no, fm)
       if cond:
         fm.tabWidget.setTabNotify(True)
@@ -210,7 +208,7 @@ class NicoDicTableModel(TableModel):
 
   def notifyBrowser(self, notify_list):
     d = self.source_detail(row_no)
-    map(webbrowser.open,
+    map(self.mainWindow.browserOpen,
         ['http://dic.nicovideo.jp/%s/%s' % (
           d['category'],
           urllib.quote(d['title'].encode('utf-8'))
@@ -249,7 +247,7 @@ class NicoLiveTableModel(TableModel):
     self.mainWindow.trayIcon.showMessage(self.trUtf8('新着生放送'), vtitles)
 
   def notifyBrowser(self, notify_list):
-    map(webbrowser.open,
+    map(self.mainWindow.browserOpen,
         ['http://live.nicovideo.jp/watch/%s' % self.source_id(n)
          for n in notify_list])
 

@@ -3,7 +3,6 @@
 
 import re
 import urllib
-import webbrowser
 from PyQt4 import QtCore, QtGui
 
 import urllib2 # コミュ画像取得のため
@@ -196,7 +195,7 @@ class UserTabWidget(QtGui.QWidget):
     return self.filterModel.mapToSource(filterModel_index)
 
   def anchorClickedHandler(self, qurl):
-    webbrowser.open(qurl.toString())
+    self.mainWindow.browserOpen(qurl.toString())
 
   def currentChangedHandler(self, current, prev):
     table_index = self.filterModel.mapToSource(current)
@@ -394,9 +393,9 @@ class DicUserTabWidget(UserTabWidget):
       rn = d['res_no']
       rs = (rn - 1) / 30 * 30 + 1
       bbs_url = 'http://dic.nicovideo.jp/b/%s/%d-#%d' % (cat_title, rs, rn)
-      menu.addAction(u'掲示板を見る', lambda: webbrowser.open(bbs_url))
+      menu.addAction(u'掲示板を見る', lambda: self.mainWindow.browserOpen(bbs_url))
       menu.addAction(u'掲示板URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(bbs_url)))
-    menu.addAction(u'記事を見る', lambda: webbrowser.open(article_url))
+    menu.addAction(u'記事を見る', lambda: self.mainWindow.browserOpen(article_url))
     menu.addAction(u'記事URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(article_url)))
     menu.addSeparator()
     menu.addAction(u'ウォッチリストに追加', lambda: self.mainWindow.appendWatchList(d['category'], d['title'], d['view_title']))
@@ -466,7 +465,7 @@ class LiveUserTabWidget(UserTabWidget):
     com_name = unicode(row[self.tableModel.COL_COM_NAME_INDEX].toString())
     url = 'http://live.nicovideo.jp/watch/' + live_id
 
-    menu.addAction(u'生放送を見る', lambda: webbrowser.open(url))
+    menu.addAction(u'生放送を見る', lambda: self.mainWindow.browserOpen(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
     menu.addAction(u'コミュニティを通知対象にする', lambda: self.mainWindow.appendCommunityList(com_id, com_name))
@@ -497,7 +496,7 @@ class WatchListUserTabWidget(UserTabWidget):
           self.tableModel.raw_row_data(table_index.row())[0:3])
     url = 'http://dic.nicovideo.jp/%s/%s' % (cat, urllib.quote(title.encode('utf-8')))
 
-    menu.addAction(u'ページを見る', lambda: webbrowser.open(url))
+    menu.addAction(u'ページを見る', lambda: self.mainWindow.browserOpen(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
     menu.addAction(u'削除する', lambda: self.mainWindow.removeWatchList(table_index.row()))
@@ -534,7 +533,7 @@ class CommunityListUserTabWidget(UserTabWidget):
     com_name = unicode(row[self.tableModel.COL_COM_NAME_INDEX].toString())
     url = 'http://ch.nicovideo.jp/community/' + com_id
 
-    menu.addAction(u'ページを見る', lambda: webbrowser.open(url))
+    menu.addAction(u'ページを見る', lambda: self.mainWindow.browserOpen(url))
     menu.addAction(u'URLをコピー', lambda: self.mainWindow.app.clipboard().setText(QtCore.QString(url)))
     menu.addSeparator()
     menu.addAction(u'削除する', lambda: self.mainWindow.removeCommunityList(table_index.row()))

@@ -4,11 +4,11 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: ディレクトリ名に日本語入ってるとマズそうだ。
 # TODO: QSortFilterProxyModel: invalid inserted rows reported by source modelってのが出るようになった。
 # TODO: サーバ側で生放送終了をちゃんと検知する。
 # TODO: サーバ側でRSSを見るようにする。
 # TODO: member only/顔出しを表示
-# TODO: ディレクトリ名に日本語入ってるとマズそうだ。
 # TODO: セーブデータjson化/cPickleやめとく
 # TODO: セーブデータにバージョン入れる。
 # TODO: browser.openの引数を設定できるように。
@@ -34,6 +34,7 @@
 # TODO: 生放送タブのフリッカー防止
 
 import os # for os.rename
+import webbrowser
 import cPickle as pickle
 import threading # for semaphore check
 from PyQt4 import QtCore, QtGui
@@ -46,6 +47,7 @@ from nicopoll import NicoPoll
 from usertab import *
 from models import *
 from errorlogger import *
+from settingsdialog import *
 
 class DraggableTabBar(QtGui.QTabBar):
   def __init__(self, parent = None):
@@ -106,6 +108,13 @@ class DraggableTabWidget(QtGui.QTabWidget):
 class MainWindow(QtGui.QMainWindow):
   POLLING_DURATION = 10000 # 10000msec = 10sec
   SETTINGS_FILE_NAME = 'nicopealert.dat'
+  INIT_SETTINGS = {
+    'version': '0.0.1', # 設定ファイルが互換性がなくなるときに変更
+    'watchList': {},
+    'communityList': {},
+    'tabList': [],
+    'browserOpenMode': 0,
+  }
 
   def checkSemaphore(self):
     self.sem = QtCore.QSystemSemaphore('nicopealert-app', 1)
@@ -137,13 +146,11 @@ class MainWindow(QtGui.QMainWindow):
       f = open(self.SETTINGS_FILE_NAME, 'rb')
       self.settings = pickle.load(f)
       f.close()
-      self.settings['watchList']
-      self.settings['communityList']
-      self.settings['tabList']
+      for k, v in self.INIT_SETTINGS.items():
+        if not self.settings.has_key(k):
+          self.settings[k] = v
     except:
-      self.settings = {'watchList': {},
-                       'communityList': {},
-                       'tabList': []}
+      self.settings = self.INIT_SETTINGS
 
     # models
     self.dicTableModel = NicoDicTableModel(self)
@@ -315,60 +322,13 @@ class MainWindow(QtGui.QMainWindow):
     event.ignore()
 
   def showSettingsDialog(self):
-    dialog = QtGui.QDialog(self)
-    dialog.setWindowModality(QtCore.Qt.ApplicationModal)
-    dialog.resize(300, 100)
-    dialog.setWindowTitle(self.trUtf8('設定ウィンドウ'))
+    d = SettingsDialog()
+    d.load(self)
+    d.show()
 
-    layout = QtGui.QVBoxLayout(dialog)
-    settingsLayout = QtGui.QGridLayout()
-
-    dummyLabel = QtGui.QLabel(dialog)
-    dummyLabel.setText(self.trUtf8('まだ設定できねっす。すまんす。'))
-    layout.addWidget(dummyLabel)
-
-    browserOpenModeLabel = QtGui.QLabel(dialog)
-    browserOpenModeLabel.setText(self.trUtf8('ブラウザでの開き方'))
-    settingsLayout.addWidget(browserOpenModeLabel, 0, 0)
-
-    browserOpenModeComboBox = QtGui.QComboBox(dialog)
-    browserOpenModeComboBox.addItem(self.trUtf8('同じウィンドウ'))
-    browserOpenModeComboBox.addItem(self.trUtf8('新しいウィンドウ'))
-    browserOpenModeComboBox.addItem(self.trUtf8('新しいタブ'))
-    settingsLayout.addWidget(browserOpenModeComboBox, 0, 1)
-
-    browserOpenModeLabel.setBuddy(browserOpenModeComboBox)
-
-    pollingDurationLabel = QtGui.QLabel(dialog)
-    pollingDurationLabel.setText(self.trUtf8('情報取得頻度'))
-    settingsLayout.addWidget(pollingDurationLabel, 1, 0)
-
-    pollingDurationComboBox = QtGui.QComboBox(dialog)
-    pollingDurationComboBox.addItem(self.trUtf8('まめ'))
-    pollingDurationComboBox.addItem(self.trUtf8('5分ごと'))
-    pollingDurationComboBox.addItem(self.trUtf8('10分ごと'))
-    settingsLayout.addWidget(pollingDurationComboBox, 1, 1)
-
-    pollingDurationLabel.setBuddy(pollingDurationComboBox)
-
-    layout.addLayout(settingsLayout)
-
-    # Cancel/OK
-    bb = QtGui.QDialogButtonBox(dialog)
-    bb.setGeometry(QtCore.QRect(30, 50, 241, 32))
-    bb.setOrientation(QtCore.Qt.Horizontal)
-    bb.setStandardButtons(QtGui.QDialogButtonBox.Cancel |
-                          QtGui.QDialogButtonBox.Ok)
-
-    layout.addWidget(bb)
-
-    self.connect(bb, QtCore.SIGNAL('accepted()'), lambda: self.settingsDialogAccepted(dialog))
-    self.connect(bb, QtCore.SIGNAL('rejected()'), dialog.reject)
-
-    dialog.show()
-
-  def settingsDialogAccepted(self, dialog):
-    dialog.accept()
+  def browserOpen(self, url):
+    print self.settings['browserOpenMode']
+    webbrowser.open(url, self.settings['browserOpenMode'])
 
 if __name__ == '__main__':
   logger = ErrorLogger('nicopealert.log')
