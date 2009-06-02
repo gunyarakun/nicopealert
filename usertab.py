@@ -57,7 +57,7 @@ class UserTabWidget(QtGui.QWidget):
       self.connect(self.soundNotifyCheckBox,
                    QtCore.SIGNAL('toggled(bool)'),
                    lambda: self.filterModel.setNotify(self.tableModel.NOTIFY_SOUND,
-                                                      self.trayNotifyCheckBox.isChecked()))
+                                                      self.soundNotifyCheckBox.isChecked()))
       horizontalLayout.addWidget(self.soundNotifyCheckBox)
 
       # 自動open
@@ -66,7 +66,7 @@ class UserTabWidget(QtGui.QWidget):
       self.connect(self.browserNotifyCheckBox,
                    QtCore.SIGNAL('toggled(bool)'),
                    lambda: self.filterModel.setNotify(self.tableModel.NOTIFY_BROWSER,
-                                                      self.trayNotifyCheckBox.isChecked()))
+                                                      self.browserNotifyCheckBox.isChecked()))
       horizontalLayout.addWidget(self.browserNotifyCheckBox)
 
     # 横スペーサ

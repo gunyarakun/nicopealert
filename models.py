@@ -158,6 +158,7 @@ class TableModel(QtCore.QAbstractTableModel):
   def checkAndAddNotifyList(self, row_no, to_notify):
     n = [False, False, False]
     for fm in self.targetFilterModels:
+      print fm.notify
       cond = self.filterWithFilterModel(row_no, fm)
       if cond:
         fm.tabWidget.setTabNotify(True)
