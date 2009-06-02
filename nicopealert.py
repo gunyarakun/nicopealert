@@ -4,6 +4,7 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: raise Fullをなんとかする。
 # TODO: コミュ・ウォッチリストの多重登録防止
 # TODO: ブラウザ起動コマンドを設定できるように。
 # TODO: ディレクトリ名に日本語入ってるとマズそうだ。
