@@ -15,7 +15,7 @@ class SettingsDialog(QtGui.QDialog):
     settingsLayout = QtGui.QGridLayout()
 
     browserOpenModeLabel = QtGui.QLabel(self)
-    browserOpenModeLabel.setText(self.trUtf8('ブラウザでの開き方'))
+    browserOpenModeLabel.setText(self.trUtf8('ブラウザでの開き方(Windows以外)'))
     settingsLayout.addWidget(browserOpenModeLabel, 0, 0)
 
     browserOpenModeComboBox = QtGui.QComboBox(self)
@@ -32,8 +32,8 @@ class SettingsDialog(QtGui.QDialog):
 
     pollingDurationComboBox = QtGui.QComboBox(self)
     pollingDurationComboBox.addItem(self.trUtf8('まめ'))
-    pollingDurationComboBox.addItem(self.trUtf8('5分ごと'))
-    pollingDurationComboBox.addItem(self.trUtf8('10分ごと'))
+    pollingDurationComboBox.addItem(self.trUtf8('それなり'))
+    pollingDurationComboBox.addItem(self.trUtf8('たまに'))
     settingsLayout.addWidget(pollingDurationComboBox, 1, 1)
 
     pollingDurationLabel.setBuddy(pollingDurationComboBox)

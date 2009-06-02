@@ -4,6 +4,8 @@
 # ニコニコ大百科用アラートツール
 # by Tasuku SUENAGA (a.k.a. gunyarakun)
 
+# TODO: コミュ・ウォッチリストの多重登録防止
+# TODO: ブラウザ起動コマンドを設定できるように。
 # TODO: ディレクトリ名に日本語入ってるとマズそうだ。
 # TODO: QSortFilterProxyModel: invalid inserted rows reported by source modelってのが出るようになった。
 # TODO: サーバ側で生放送終了をちゃんと検知する。
@@ -11,7 +13,6 @@
 # TODO: member only/顔出しを表示
 # TODO: セーブデータjson化/cPickleやめとく
 # TODO: セーブデータにバージョン入れる。
-# TODO: browser.openの引数を設定できるように。
 # TODO: 詳細画面の有無を設定できるように。
 # TODO: ニコ生情報を更新しないように設定できるように。
 # TODO: polling間隔を設定できるように。
@@ -21,10 +22,11 @@
 # TODO: 時間って、何分前とかのほうがよくない？
 # TODO: py2exe, py2appでのimageformatsディレクトリ自動検出
 # TODO: py2exe、w9xpopen.exeいらない。
+# TODO: Mac環境、Growlチェック。
 # TODO: サーバサイド、終わった生放送が出続ける
 # TODO: 大百科古いイベント削除
 # TODO: ネットワーク無効実験
-# TODO: Macでの動作確認、パッケージング
+# TODO: Macでの動作確認、パッケージング(PyInstaller)
 # TODO: *** リリースへの壁 ***
 # TODO: timer_handlerのスレッド化。詰まることがあるかもしれないので。
 # TODO: リファクタリング
