@@ -249,7 +249,7 @@ class NicoLiveTableModel(TableModel):
 
   def notifyBrowser(self, notify_list):
     map(webbrowser.open,
-        ['http://live.nicovideo.jp/watch/%s' % self.source_id(row_no)
+        ['http://live.nicovideo.jp/watch/%s' % self.source_id(n)
          for n in notify_list])
 
   def current_lives(self, lives):
