@@ -196,6 +196,9 @@ class MainWindow(QtGui.QMainWindow):
     # menu
     self.fileMenu = QtGui.QMenu(self.ui.menubar)
     self.fileMenu.addAction(u'設定', lambda: self.showSettingsDialog())
+    self.fileMenu.addSeparator()
+    self.fileMenu.addAction(u'トレイアイコンに収納', lambda: self.hide())
+    self.fileMenu.addAction(u'終了', lambda: self.app.quit())
     self.fileMenu.setTitle(self.trUtf8('ファイル'))
     self.ui.menubar.addAction(self.fileMenu.menuAction())
 
