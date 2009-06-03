@@ -63,15 +63,12 @@ class NicoPoll:
       else:
         url = 'http://dic.nicovideo.jp:2525/nicopealert.json.bz2'
 
-      while True:
-        events = self.fetch_json_bz2(self.opener, url)
-        if events is None:
-          return
-        if events['timestamp'] > self.max_timestamp:
-          self.max_timestamp = events['timestamp']
-          break
-        time.sleep(5)
-
+      events = self.fetch_json_bz2(self.opener, url)
+      if events is None:
+        return
+      if events['timestamp'] <= self.max_timestamp:
+        return
+      self.max_timestamp = events['timestamp']
       self.first = False
 
       if events['version'] > VERSION:

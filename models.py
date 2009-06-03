@@ -133,6 +133,8 @@ class TableModel(QtCore.QAbstractTableModel):
               row.append(QtCore.QVariant(val))
             elif val is None:
               row.append(QtCore.QVariant())
+            else:
+              print "invalid type: %s:%s" % (type(val), val.__repr__())
           self.datas.append(row)
           if self.FILTER_AND_NOTIFY:
             self.checkAndAddNotifyList(len(self.datas) - 1, to_notify)
