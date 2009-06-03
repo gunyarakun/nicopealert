@@ -33,7 +33,7 @@ class Ui_MainWindow(object):
     QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
   def retranslateUi(self, MainWindow):
-    MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "ニコ百アラート", None, QtGui.QApplication.UnicodeUTF8))
+    MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "ニコペアラート", None, QtGui.QApplication.UnicodeUTF8))
 
 import nicopealert_rc
 

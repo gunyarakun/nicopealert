@@ -10,7 +10,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>ニコ百アラート</string>
+   <string>ニコペアラート</string>
   </property>
   <property name="windowIcon" >
    <iconset resource="nicopealert.qrc" >
